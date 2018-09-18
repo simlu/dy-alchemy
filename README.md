@@ -16,3 +16,27 @@ Simplification of Amazon DynamoDB interactions
 ```bash
 npm i --save dy-alchemy
 ```
+
+## Lock Manager
+
+Wrapper around [dynamodb-lock-client](https://www.npmjs.com/package/dynamodb-lock-client) with lazy initialization.
+
+### DynamoDb Table
+
+Cloudformation information
+
+```yml
+DynamoLockTable:
+  Type: AWS::DynamoDB::Table
+  Properties:
+    TableName: [[LOCK TABLE NAME HERE]]
+    AttributeDefinitions:
+      - AttributeName: id
+        AttributeType: S
+    KeySchema:
+      - AttributeName: id
+        KeyType: HASH
+    ProvisionedThroughput:
+      ReadCapacityUnits: 1
+      WriteCapacityUnits: 1
+```
