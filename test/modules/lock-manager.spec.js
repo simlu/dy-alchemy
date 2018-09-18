@@ -6,6 +6,12 @@ const lockManager = require("../../src/modules/lock-manager");
 
 const cryptoRandomBytes = crypto.randomBytes;
 
+const awsConfig = {
+  region: "us-west-2",
+  accessKeyId: "XXXXXXXXXXXXXXXXXXXX",
+  secretAccessKey: "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+};
+
 describe("Lock Manager Tests", () => {
   let locker;
 
@@ -14,11 +20,7 @@ describe("Lock Manager Tests", () => {
     nockBack.fixtures = path.join(__dirname, "__cassettes");
     locker = lockManager("dy-alchemy-lock-table", {
       leaseDurationMs: 1000,
-      awsConfig: {
-        region: "us-west-2",
-        accessKeyId: "XXXXXXXXXXXXXXXXXXXX",
-        secretAccessKey: "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
-      }
+      awsConfig
     });
   });
 
@@ -95,11 +97,7 @@ describe("Lock Manager Tests", () => {
     const lockerHeartbeat = lockManager("dy-alchemy-lock-table", {
       leaseDurationMs: 1000,
       heartbeatPeriodMs: 600,
-      awsConfig: {
-        region: "us-west-2",
-        accessKeyId: "XXXXXXXXXXXXXXXXXXXX",
-        secretAccessKey: "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
-      },
+      awsConfig,
       awsLogger: { error: msg => logs.push(msg) }
     });
     await lockerHeartbeat.lock("lock-name-heartbeat-failure");
