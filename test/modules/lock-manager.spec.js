@@ -35,6 +35,7 @@ describe("Lock Manager Tests", () => {
       return result.slice(0, size);
     };
   });
+
   afterEach(() => {
     crypto.randomBytes = cryptoRandomBytes;
   });
