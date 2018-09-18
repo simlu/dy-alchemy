@@ -47,14 +47,14 @@ describe("Lock Manager Tests", () => {
   });
 
   it("Testing Basic Setup", async () => {
-    const nockDone = await new Promise(resolve => nockBack('lock-basic.json', {}, resolve));
+    const nockDone = await new Promise(resolve => nockBack('lockBasic.json', {}, resolve));
     const lock = await locker.lock("lock-name");
     await lock.release();
     await nockDone();
   }).timeout(10000);
 
   it("Testing Nested Locks", async () => {
-    const nockDone = await new Promise(resolve => nockBack('lock-nested.json', {}, resolve));
+    const nockDone = await new Promise(resolve => nockBack('lockNested.json', {}, resolve));
     const lockOuter = await locker.lock("lock-name-outer");
     const lockInner = await locker.lock("lock-name-inner");
     await lockInner.release();
@@ -63,14 +63,14 @@ describe("Lock Manager Tests", () => {
   }).timeout(10000);
 
   it("Testing Lock Timeout", async () => {
-    const nockDone = await new Promise(resolve => nockBack('lock-timeout.json', {}, resolve));
+    const nockDone = await new Promise(resolve => nockBack('lockTimeout.json', {}, resolve));
     const lock = await locker.lock("lock-name-timeout");
     await lock.release();
     await nockDone();
   }).timeout(10000);
 
   it("Testing Lock Failure", async () => {
-    const nockDone = await new Promise(resolve => nockBack('lock-failure.json', {}, resolve));
+    const nockDone = await new Promise(resolve => nockBack('lockFailure.json', {}, resolve));
     try {
       await locker.lock("lock-failure");
     } catch (e) {
@@ -81,7 +81,7 @@ describe("Lock Manager Tests", () => {
 
 
   it("Testing Lock Release Failure", async () => {
-    const nockDone = await new Promise(resolve => nockBack('lock-release-failure.json', {}, resolve));
+    const nockDone = await new Promise(resolve => nockBack('lockReleaseFailure.json', {}, resolve));
     const lock = await locker.lock("lock-release-failure");
     try {
       await lock.release();
@@ -92,7 +92,7 @@ describe("Lock Manager Tests", () => {
   }).timeout(10000);
 
   it("Testing Heartbeat Failure", async () => {
-    const nockDone = await new Promise(resolve => nockBack('lock-heartbeat-failure.json', {}, resolve));
+    const nockDone = await new Promise(resolve => nockBack('lockHeartbeatFailure.json', {}, resolve));
     const logs = [];
     const lockerHeartbeat = lockManager("dy-alchemy-lock-table", {
       leaseDurationMs: 1000,
