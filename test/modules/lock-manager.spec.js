@@ -44,4 +44,13 @@ describe("Lock Manager Tests", () => {
     await lock.release();
     await nockDone();
   }).timeout(10000);
+
+  it("Testing Nested Locks", async () => {
+    const nockDone = await new Promise(resolve => nockBack('lock-nested.json', {}, resolve));
+    const lockOuter = await locker.lock("lock-name-outer");
+    const lockInner = await locker.lock("lock-name-inner");
+    await lockInner.release();
+    await lockOuter.release();
+    await nockDone();
+  }).timeout(10000);
 });
