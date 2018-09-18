@@ -13,6 +13,7 @@ describe("Lock Manager Tests", () => {
     nockBack.setMode('record');
     nockBack.fixtures = path.join(__dirname, "__cassettes");
     locker = lockManager("dy-alchemy-lock-table", {
+      leaseDurationMs: 1000,
       awsConfig: {
         region: "us-west-2",
         accessKeyId: "XXXXXXXXXXXXXXXXXXXX",
@@ -38,6 +39,10 @@ describe("Lock Manager Tests", () => {
     crypto.randomBytes = cryptoRandomBytes;
   });
 
+  it("Init With Defaults", () => {
+    lockManager("");
+  });
+
   it("Testing Basic Setup", async () => {
     const nockDone = await new Promise(resolve => nockBack('lock-basic.json', {}, resolve));
     const lock = await locker.lock("lock-name");
@@ -51,6 +56,55 @@ describe("Lock Manager Tests", () => {
     const lockInner = await locker.lock("lock-name-inner");
     await lockInner.release();
     await lockOuter.release();
+    await nockDone();
+  }).timeout(10000);
+
+  it("Testing Lock Timeout", async () => {
+    const nockDone = await new Promise(resolve => nockBack('lock-timeout.json', {}, resolve));
+    const lock = await locker.lock("lock-name-timeout");
+    await lock.release();
+    await nockDone();
+  }).timeout(10000);
+
+  it("Testing Lock Failure", async () => {
+    const nockDone = await new Promise(resolve => nockBack('lock-failure.json', {}, resolve));
+    try {
+      await locker.lock("lock-failure");
+    } catch (e) {
+      expect(String(e)).to.equal("UnknownError: null");
+    }
+    await nockDone();
+  }).timeout(10000);
+
+
+  it("Testing Lock Release Failure", async () => {
+    const nockDone = await new Promise(resolve => nockBack('lock-release-failure.json', {}, resolve));
+    const lock = await locker.lock("lock-release-failure");
+    try {
+      await lock.release();
+    } catch (e) {
+      expect(String(e)).to.equal("UnknownError: null");
+    }
+    await nockDone();
+  }).timeout(10000);
+
+  it("Testing Heartbeat Failure", async () => {
+    const nockDone = await new Promise(resolve => nockBack('lock-heartbeat-failure.json', {}, resolve));
+    const logs = [];
+    const lockerHeartbeat = lockManager("dy-alchemy-lock-table", {
+      leaseDurationMs: 1000,
+      heartbeatPeriodMs: 600,
+      awsConfig: {
+        region: "us-west-2",
+        accessKeyId: "XXXXXXXXXXXXXXXXXXXX",
+        secretAccessKey: "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+      },
+      awsLogger: { error: msg => logs.push(msg) }
+    });
+    await lockerHeartbeat.lock("lock-name-heartbeat-failure");
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    expect(logs).to.deep
+      .equal(["Error: Failed to renew heartbeat for lock lock-name-heartbeat-failure\nUnknownError: null"]);
     await nockDone();
   }).timeout(10000);
 });

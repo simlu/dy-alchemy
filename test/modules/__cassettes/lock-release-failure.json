@@ -7,7 +7,7 @@
             "TableName": "dy-alchemy-lock-table",
             "Key": {
                 "id": {
-                    "S": "lock-name"
+                    "S": "lock-release-failure"
                 }
             },
             "ConsistentRead": true
@@ -35,7 +35,7 @@
                     "B": "a4ayc/80/OGda4BO/1o/V0etpOqiLx1JwB5S3beHW0ucLk2P6X2IFDDeTnVLQgW5wnzpZxUjHP/EM3NAyxECgA=="
                 },
                 "id": {
-                    "S": "lock-name"
+                    "S": "lock-release-failure"
                 }
             },
             "ConditionExpression": "attribute_not_exists(id)"
@@ -51,7 +51,7 @@
             "TableName": "dy-alchemy-lock-table",
             "Key": {
                 "id": {
-                    "S": "lock-name"
+                    "S": "lock-release-failure"
                 }
             },
             "ConditionExpression": "attribute_exists(id) and guid = :guid",
@@ -61,7 +61,7 @@
                 }
             }
         },
-        "status": 200,
+        "status": 400,
         "response": {}
     }
 ]
