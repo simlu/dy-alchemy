@@ -1,11 +1,11 @@
-const get = require("lodash.get");
-const DynamoDBLockClient = require("dynamodb-lock-client");
+const get = require('lodash.get');
+const DynamoDBLockClient = require('dynamodb-lock-client');
 const AWS = require('aws-sdk-wrap');
 
 module.exports = (lockTable, {
   leaseDurationMs = 10000,
   heartbeatPeriodMs = undefined,
-  owner = "dy-alchemy-lock-manager",
+  owner = 'dy-alchemy-lock-manager',
   awsConfig = {},
   awsLogger = null
 } = {}) => {
@@ -14,7 +14,7 @@ module.exports = (lockTable, {
     if (lockClient == null) {
       const aws = AWS({ config: awsConfig, logger: awsLogger });
       lockClient = new DynamoDBLockClient.FailOpen({
-        dynamodb: aws.get("DynamoDB.DocumentClient"),
+        dynamodb: aws.get('DynamoDB.DocumentClient'),
         lockTable,
         partitionKey: 'id',
         leaseDurationMs,
@@ -31,7 +31,7 @@ module.exports = (lockTable, {
         if (err) {
           return reject(err);
         }
-        lock.on("error", error => Promise.resolve(error)
+        lock.on('error', error => Promise.resolve(error)
           .then(e => `Error: Failed to renew heartbeat for lock ${lockName}\n${e}`)
           // eslint-disable-next-line no-console
           .then(e => get(awsLogger, 'error', console.log)(e)));
