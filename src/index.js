@@ -1,4 +1,4 @@
-const lockManager = require("./modules/lock-manager");
+const lockManager = require('./modules/lock-manager');
 
 module.exports = {
   lockManager

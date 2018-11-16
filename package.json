@@ -5,22 +5,25 @@
   "main": "lib/index.js",
   "dependencies": {
     "aws-sdk-wrap": "1.1.1",
-    "dynamodb-lock-client": "0.3.1",
+    "dynamodb-lock-client": "0.4.0",
     "lodash.get": "4.4.2"
   },
   "devDependencies": {
-    "aws-sdk": "2.317.0",
-    "js-gardener": "1.31.7",
-    "babel-cli": "7.0.0-beta.3",
-    "babel-eslint": "9.0.0",
-    "babel-plugin-transform-flow-comments": "7.0.0-beta.3",
-    "babel-preset-flow": "7.0.0-beta.3",
-    "babel-register": "7.0.0-beta.3",
-    "chai": "4.1.2",
+    "@babel/cli": "7.1.5",
+    "@babel/core": "7.1.6",
+    "@babel/plugin-proposal-object-rest-spread": "7.0.0",
+    "@babel/plugin-transform-flow-comments": "7.0.0",
+    "@babel/preset-flow": "7.0.0",
+    "@babel/register": "7.0.0",
+    "aws-sdk": "2.355.0",
+    "babel-eslint": "10.0.1",
+    "chai": "4.2.0",
     "coveralls": "3.0.2",
-    "nock": "10.0.0",
-    "nyc": "13.0.1",
-    "semantic-release": "15.9.15"
+    "js-gardener": "1.33.0",
+    "nock": "10.0.2",
+    "nyc": "13.1.0",
+    "semantic-release": "15.11.0",
+    "timekeeper": "2.1.2"
   },
   "scripts": {
     "test": "npm run clean && npm run gardener && npm run test-simple",
@@ -42,7 +45,7 @@
   "author": "Lukas Siemon",
   "license": "MIT",
   "nyc": {
-    "tempDirectory": "./coverage/.nyc_output",
+    "tempDir": "./coverage/.nyc_output",
     "report-dir": "./coverage",
     "check-coverage": true,
     "per-file": false,
@@ -58,7 +61,7 @@
       "text-summary"
     ],
     "require": [
-      "babel-register"
+      "@babel/register"
     ],
     "extension": [],
     "cache": true,
