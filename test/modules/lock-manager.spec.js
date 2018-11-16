@@ -2,6 +2,7 @@ const path = require('path');
 const crypto = require('crypto');
 const expect = require('chai').expect;
 const nockBack = require('nock').back;
+const timekeeper = require('timekeeper');
 const lockManager = require('../../src/modules/lock-manager');
 
 const cryptoRandomBytes = crypto.randomBytes;
@@ -18,10 +19,15 @@ describe('Lock Manager Tests', () => {
   before(() => {
     nockBack.setMode('record');
     nockBack.fixtures = path.join(__dirname, '__cassettes');
+    timekeeper.freeze(new Date(1893448800000));
     locker = lockManager('dy-alchemy-lock-table', {
       leaseDurationMs: 1000,
       awsConfig
     });
+  });
+
+  after(() => {
+    timekeeper.reset();
   });
 
   beforeEach(() => {

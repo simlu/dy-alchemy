@@ -19,6 +19,7 @@ module.exports = (lockTable, {
         partitionKey: 'id',
         leaseDurationMs,
         heartbeatPeriodMs,
+        trustLocalTime: true,
         owner
       });
     }
