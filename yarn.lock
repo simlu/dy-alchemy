@@ -622,10 +622,10 @@ atob@^2.1.1:
   resolved "https://registry.yarnpkg.com/atob/-/atob-2.1.2.tgz#6d9517eb9e030d2436666651e86bd9f6f13533c9"
   integrity sha512-Wm6ukoaOGJi/73p/cl2GvLjTI5JM1k/O14isD73YML8StrH/7/lRFgmg8nICZgD3bZZvjwCGxtMOD3wWNAu8cg==
 
-aws-sdk-wrap@1.1.6:
-  version "1.1.6"
-  resolved "https://registry.yarnpkg.com/aws-sdk-wrap/-/aws-sdk-wrap-1.1.6.tgz#21eb5e02db49c071b61c38207ab1279ae88152e4"
-  integrity sha512-hapMQuUZ41kSTOSe/kUmjRDwCyq1J+1UdCIr4nZtdla9Wzdm4T2Eu/jVrC3hoylVyWMW2VnNTbTFQBgQB4TwQQ==
+aws-sdk-wrap@1.1.7:
+  version "1.1.7"
+  resolved "https://registry.yarnpkg.com/aws-sdk-wrap/-/aws-sdk-wrap-1.1.7.tgz#d6d6e2498761c2052db2e7d46b46bf015d71365c"
+  integrity sha512-spp7TjC32ljXQMvA1vZfpdew3mQC1U/IbzG7EKZXqoBDneNnE+Xdly1fX9VopOdcBhW6ZZk4llv7souRJzRidA==
   dependencies:
     lodash.get "4.4.2"
 
