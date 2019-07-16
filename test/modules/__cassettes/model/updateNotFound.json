@@ -1,0 +1,37 @@
+[
+  {
+    "scope": "https://dynamodb.us-west-2.amazonaws.com:443",
+    "method": "POST",
+    "path": "/",
+    "body": {
+      "Key": {
+        "id": {
+          "S": "uuid"
+        }
+      },
+      "ConditionExpression": "id = :id",
+      "ExpressionAttributeNames": {
+        "#KEYWORDS": "keywords"
+      },
+      "ExpressionAttributeValues": {
+        ":keywords": {
+          "L": [
+            {
+              "S": "keyword1"
+            }
+          ]
+        },
+        ":id": {
+          "S": "uuid"
+        }
+      },
+      "UpdateExpression": "SET #KEYWORDS = :keywords",
+      "TableName": "dy-alchemy-table"
+    },
+    "status": 400,
+    "response": {
+      "__type": "com.amazonaws.dynamodb.v20120810#ConditionalCheckFailedException",
+      "message": "The conditional request failed"
+    }
+  }
+]

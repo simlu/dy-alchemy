@@ -17,6 +17,105 @@ Simplification of Amazon DynamoDB interactions
 npm i --save dy-alchemy
 ```
 
+## Model
+
+This library comes with a basic object relational mapper (ORM) for interacting with Dynamodb objects in a consistent manner.
+
+### Initialization
+
+<!-- eslint-disable import/no-unresolved -->
+```js
+const { Model } = require('dy-alchemy');
+
+const model = Model({
+  modelName: 'model-name',
+  tableName: 'dynamo-table-name',
+  awsConfig: {},
+  errorMap: {
+    EntryNotFound: ({ id }) => { /* ... */ },
+    EntryExists: ({ id }) => { /* ... */ }
+  },
+  callback: (/* {
+    id, modelName, tableName, actionType
+  } */) => { /* ... */ }
+});
+model.get(/* ... */);
+```
+
+_Params_
+
+* `modelName` _string_: Name of model being accessed
+* `tableName` _string_: Name of Dynamo Table associated with model
+* `awsConfig` _object_: Optional hard coded config passed to aws-sdk
+* `errorMap` _object_: Optional Key / Value map to allow custom errors
+* `callback` _function_: Optional hook after successful actions, `actionType` may be one of ['get', 'create', 'update', 'delete']
+
+### Model Methods
+
+All returning methods return unmarshalled dynamo data on success
+
+* Get
+* Create
+* Update
+* Delete
+
+#### Get
+
+Fetches model from Dynamo using [Dynamodb::GetItem](https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/DynamoDB.html#getItem-property)
+
+<!-- eslint-disable no-undef -->
+```js
+modelName.get({ id, fields });
+```
+
+_Params_
+
+* `id` string: Id of model to get
+* `fields` string: [object-fields](https://github.com/blackflux/object-fields) representation of the fields to return
+
+#### Create
+
+Creates object using [Dynamodb::PutItem](https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/DynamoDB.html#putItem-property) if not already exists
+
+<!-- eslint-disable no-undef -->
+```js
+modelName.create({ id, data, fields });
+```
+
+_Params_
+
+* `id` string: Id of model to create, must be unique
+* `data` object: Data to populate dynamo tuple. _Important_: `id` is injected into `data`
+* `fields` string: [object-fields](https://github.com/blackflux/object-fields) representation of the fields to return
+
+#### Update
+
+Do a partial update on object using [Dynamodb::UpdateItem](https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/DynamoDB.html#updateItem-property) if object already exists
+
+<!-- eslint-disable no-undef -->
+```js
+modelName.update({ id, data, fields });
+```
+
+_Params_
+
+* `id` string: Id of model to update
+* `data` object: Data to update
+* `fields` string: [object-fields](https://github.com/blackflux/object-fields) representation of the fields to return
+
+#### Delete
+
+Delete an object using [Dynamodb::DeleteItem](https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/DynamoDB.html#deleteItem-property)
+
+<!-- eslint-disable no-undef -->
+```js
+modelName.delete({ id });
+```
+
+_Params_
+
+* `id` string: Id of model to delete
+
 ## Lock Manager
 
 Wrapper around [dynamodb-lock-client](https://www.npmjs.com/package/dynamodb-lock-client) with lazy initialization.
