@@ -58,6 +58,15 @@ describe('Dynamo Sdk Tests', () => {
     DynamoModel({ modelName: '', tableName: '' });
   });
 
+  it('Testing precheck', async () => {
+    const model = DynamoModel({ modelName: 'model', awsConfig });
+    try {
+      await model.get({ id: 'uuid', fields: 'keywords' });
+    } catch (err) {
+      expect(err.message).to.equal('Missing required value: tableName');
+    }
+  });
+
   const checkCallbackLog = (actionTypes) => {
     expect(callbackLog).to.deep.equal(actionTypes.map(actionType => ({
       id: 'uuid',

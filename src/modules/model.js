@@ -1,4 +1,3 @@
-const assert = require('assert');
 const AWS = require('aws-sdk-wrap');
 const objectFields = require('object-fields');
 const { DefaultEntryNotFoundError, DefaultEntryExistsError } = require('./errors');
@@ -16,8 +15,6 @@ module.exports = ({
   } = {},
   callback = () => {}
 }) => {
-  assert(typeof modelName === 'string');
-  assert(typeof tableName === 'string');
   const aws = AWS({ config: awsConfig });
   const dynamodbConverter = aws.get('dynamodb.converter');
   const internalCallback = ({ id, actionType }) => callback({
@@ -26,7 +23,16 @@ module.exports = ({
     tableName,
     actionType
   });
+  const precheck = () => {
+    Object.entries({ modelName, tableName })
+      .forEach(([key, value]) => {
+        if (typeof value !== 'string' || value === 'string') {
+          throw new Error(`Missing required value: ${key}`);
+        }
+      });
+  };
   const get = async ({ id, fields }) => {
+    precheck();
     const resp = await aws.call('dynamodb:getItem', {
       TableName: tableName,
       ProjectionExpression: objectFields.split(fields).join(','),
@@ -43,6 +49,7 @@ module.exports = ({
   return {
     get,
     create: async ({ id, data, fields }) => {
+      precheck();
       const resp = await aws.call('dynamodb:putItem', {
         ConditionExpression: 'id <> :id',
         ExpressionAttributeValues: { ':id': { S: id } },
@@ -58,6 +65,7 @@ module.exports = ({
       return get({ id, fields });
     },
     update: async ({ id, data, fields }) => {
+      precheck();
       const resp = await aws.call('dynamodb:updateItem', {
         Key: { id: { S: id } },
         ConditionExpression: 'id = :id',
@@ -80,6 +88,7 @@ module.exports = ({
       return get({ id, fields });
     },
     delete: async ({ id }) => {
+      precheck();
       const resp = await aws.call('dynamodb:deleteItem', {
         ConditionExpression: 'id = :id',
         ExpressionAttributeValues: { ':id': { S: id } },
