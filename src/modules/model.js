@@ -1,6 +1,6 @@
 const assert = require('assert');
 const AWS = require('aws-sdk-wrap');
-const objectPaths = require('obj-paths');
+const objectFields = require('object-fields');
 const { DefaultEntryNotFoundError, DefaultEntryExistsError } = require('./errors');
 
 const DefaultEntryNotFound = ({ id }) => new DefaultEntryNotFoundError(id);
@@ -30,7 +30,7 @@ module.exports = ({
   const get = async ({ id, fields }) => {
     const resp = await aws.call('dynamodb:getItem', {
       TableName: tableName,
-      ProjectionExpression: objectPaths.split(fields).join(','),
+      ProjectionExpression: objectFields.split(fields).join(','),
       Key: { id: { S: id } },
       ConsistentRead: true
     });
