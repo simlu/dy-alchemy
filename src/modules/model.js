@@ -14,8 +14,7 @@ module.exports = ({
     EntryNotFound = DefaultEntryNotFound,
     EntryExists = DefaultEntryExists
   } = {},
-  callback = () => {
-  }
+  callback = () => {}
 }) => {
   assert(typeof modelName === 'string');
   assert(typeof tableName === 'string');
