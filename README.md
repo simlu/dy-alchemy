@@ -27,7 +27,7 @@ This library comes with a basic object relational mapper (ORM) for interacting w
 ```js
 const { Model } = require('dy-alchemy');
 
-const modelName = Model({
+const model = Model({
   modelName: 'model-name',
   tableName: 'dynamo-table-name',
   awsConfig: {},
@@ -39,7 +39,7 @@ const modelName = Model({
     id, modelName, tableName, actionType
   } */) => { /* ... */ }
 });
-modelName.get(/* ... */);
+model.get(/* ... */);
 ```
 
 _Params_
