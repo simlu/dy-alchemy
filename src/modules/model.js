@@ -26,7 +26,7 @@ module.exports = ({
   const precheck = () => {
     Object.entries({ modelName, tableName })
       .forEach(([key, value]) => {
-        if (typeof value !== 'string' || value === 'string') {
+        if (typeof value !== 'string' || value === '') {
           throw new Error(`Missing required value: ${key}`);
         }
       });
