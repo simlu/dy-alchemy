@@ -1,0 +1,61 @@
+[
+  {
+    "scope": "https://dynamodb.us-west-2.amazonaws.com:443",
+    "method": "POST",
+    "path": "/",
+    "body": {
+      "Key": {
+        "id": {
+          "S": "uuid"
+        }
+      },
+      "ConditionExpression": "id = :id",
+      "ExpressionAttributeNames": {
+        "#KEYWORDS": "keywords"
+      },
+      "ExpressionAttributeValues": {
+        ":keywords": {
+          "L": [
+            {
+              "S": "keyword1"
+            }
+          ]
+        },
+        ":id": {
+          "S": "uuid"
+        }
+      },
+      "UpdateExpression": "SET #KEYWORDS = :keywords",
+      "TableName": "dy-alchemy-table"
+    },
+    "status": 200,
+    "response": {}
+  },
+  {
+    "scope": "https://dynamodb.us-west-2.amazonaws.com:443",
+    "method": "POST",
+    "path": "/",
+    "body": {
+      "TableName": "dy-alchemy-table",
+      "ProjectionExpression": "keywords",
+      "Key": {
+        "id": {
+          "S": "uuid"
+        }
+      },
+      "ConsistentRead": true
+    },
+    "status": 200,
+    "response": {
+      "Item": {
+        "keywords": {
+          "L": [
+            {
+              "S": "keyword1"
+            }
+          ]
+        }
+      }
+    }
+  }
+]

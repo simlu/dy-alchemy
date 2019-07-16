@@ -1,0 +1,23 @@
+[
+  {
+    "scope": "https://dynamodb.us-west-2.amazonaws.com:443",
+    "method": "POST",
+    "path": "/",
+    "body": {
+      "ConditionExpression": "id = :id",
+      "ExpressionAttributeValues": {
+        ":id": {
+          "S": "uuid"
+        }
+      },
+      "TableName": "dy-alchemy-table",
+      "Key": {
+        "id": {
+          "S": "uuid"
+        }
+      }
+    },
+    "status": 200,
+    "response": {}
+  }
+]
