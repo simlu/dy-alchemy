@@ -1,7 +1,9 @@
+const Model = require('./modules/model');
 const lockManager = require('./modules/lock-manager');
-const Sdk = require('./modules/sdk');
+const errors = require('./modules/errors');
 
 module.exports = {
-  lockManager,
-  Sdk
+  Model,
+  errors,
+  lockManager
 };

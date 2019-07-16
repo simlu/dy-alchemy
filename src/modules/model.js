@@ -1,23 +1,13 @@
 const assert = require('assert');
 const AWS = require('aws-sdk-wrap');
 const objectPaths = require('obj-paths');
+const { DefaultEntryNotFoundError, DefaultEntryExistsError } = require('./errors');
 
-
-class DefaultEntryNotFoundError extends Error {
-  constructor() {
-    super('Entry not found.');
-  }
-}
-class DefaultEntryExistsError extends Error {
-  constructor() {
-    super('Entry exists.');
-  }
-}
 const DefaultEntryNotFound = ({ id }) => new DefaultEntryNotFoundError(id);
 const DefaultEntryExists = ({ id }) => new DefaultEntryExistsError(id);
 
 module.exports = ({
-  name,
+  modelName,
   tableName,
   awsConfig = {},
   errorMap: {
@@ -27,7 +17,7 @@ module.exports = ({
   callback = () => {
   }
 }) => {
-  assert(typeof name === 'string');
+  assert(typeof modelName === 'string');
   assert(typeof tableName === 'string');
   const aws = AWS({ config: awsConfig });
   const dynamodbConverter = aws.get('dynamodb.converter');
@@ -100,5 +90,3 @@ module.exports = ({
     }
   };
 };
-module.exports.DefaultEntryNotFoundError = DefaultEntryNotFoundError;
-module.exports.DefaultEntryExistsError = DefaultEntryExistsError;

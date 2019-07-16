@@ -1,7 +1,8 @@
 const path = require('path');
 const expect = require('chai').expect;
 const nockBack = require('nock').back;
-const DynamoSdk = require('../../src/modules/sdk');
+const DynamoModel = require('../../src/modules/model');
+const { DefaultEntryExistsError, DefaultEntryNotFoundError } = require('../../src/modules/errors');
 
 
 class CustomEntryExistsError extends Error {
@@ -26,16 +27,16 @@ const awsConfig = {
 };
 describe('Dynamo Sdk Tests', () => {
   let callbackLog = [];
-  const sdk = DynamoSdk({
-    name: 'default',
+  const defaultModel = DynamoModel({
+    modelName: 'default',
     tableName: 'dy-alchemy-table',
     awsConfig,
     callback: ({ tableName, actionType, id }) => {
       callbackLog.push({ tableName, actionType, id });
     }
   });
-  const customErrorMapSdk = DynamoSdk({
-    name: 'customErrorMap',
+  const customErrorModel = DynamoModel({
+    modelName: 'customErrorMap',
     tableName: 'dy-alchemy-table',
     awsConfig,
     errorMap: {
@@ -54,7 +55,7 @@ describe('Dynamo Sdk Tests', () => {
   });
 
   it('Init With Defaults', () => {
-    DynamoSdk({ name: '', tableName: '' });
+    DynamoModel({ modelName: '', tableName: '' });
   });
 
   const checkCallbackLog = (actionTypes) => {
@@ -68,14 +69,15 @@ describe('Dynamo Sdk Tests', () => {
   describe('Testing Get', () => {
     it('Testing Get', async () => {
       const nockDone = await new Promise(resolve => nockBack('sdkGet.json', {}, resolve));
-      expect(await sdk.get({ id: 'uuid', fields: 'keywords' })).to.deep.equal({ keywords: ['keyword1', 'keyword2'] });
+      expect(await defaultModel.get({ id: 'uuid', fields: 'keywords' }))
+        .to.deep.equal({ keywords: ['keyword1', 'keyword2'] });
       checkCallbackLog(['get']);
       await nockDone();
     });
 
     it('Testing Get Custom Error Sdk (default callback coverage)', async () => {
       const nockDone = await new Promise(resolve => nockBack('sdkGet.json', {}, resolve));
-      const result = await customErrorMapSdk.get({ id: 'uuid', fields: 'keywords' });
+      const result = await customErrorModel.get({ id: 'uuid', fields: 'keywords' });
       expect(result).to.deep.equal({ keywords: ['keyword1', 'keyword2'] });
       await nockDone();
     });
@@ -83,7 +85,7 @@ describe('Dynamo Sdk Tests', () => {
     it('Testing Get EntryNotFound Custom', async () => {
       const nockDone = await new Promise(resolve => nockBack('sdkGetNotFoundCustom.json', {}, resolve));
       try {
-        await customErrorMapSdk.get({ id: 'uuid', fields: 'keywords' });
+        await customErrorModel.get({ id: 'uuid', fields: 'keywords' });
       } catch (err) {
         expect(err).instanceof(CustomEntryNotFoundError);
         expect(err.message).to.equal('Entry not found: uuid');
@@ -94,9 +96,9 @@ describe('Dynamo Sdk Tests', () => {
     it('Testing Get EntryNotFound Default', async () => {
       const nockDone = await new Promise(resolve => nockBack('sdkGetNotFoundDefault.json', {}, resolve));
       try {
-        await sdk.get({ id: 'uuid', fields: 'keywords' });
+        await defaultModel.get({ id: 'uuid', fields: 'keywords' });
       } catch (err) {
-        expect(err).instanceof(DynamoSdk.DefaultEntryNotFoundError);
+        expect(err).instanceof(DefaultEntryNotFoundError);
         expect(err.message).to.equal('Entry not found.');
         checkCallbackLog([]);
         await nockDone();
@@ -107,7 +109,7 @@ describe('Dynamo Sdk Tests', () => {
   describe('Testing Create', () => {
     it('Testing Create', async () => {
       const nockDone = await new Promise(resolve => nockBack('sdkCreate.json', {}, resolve));
-      const result = await sdk.create({
+      const result = await defaultModel.create({
         id: 'uuid',
         data: { keywords: ['keyword1', 'keyword2'] },
         fields: 'keywords'
@@ -120,7 +122,7 @@ describe('Dynamo Sdk Tests', () => {
     it('Testing Create Entry Exists Custom', async () => {
       const nockDone = await new Promise(resolve => nockBack('sdkCreateEntryExistsCustom.json', {}, resolve));
       try {
-        await customErrorMapSdk.create({
+        await customErrorModel.create({
           id: 'uuid',
           data: { keywords: ['keyword1', 'keyword2'] },
           fields: 'keywords'
@@ -135,13 +137,13 @@ describe('Dynamo Sdk Tests', () => {
     it('Testing Create Entry Exists Default', async () => {
       const nockDone = await new Promise(resolve => nockBack('sdkCreateEntryExistsDefault.json', {}, resolve));
       try {
-        await sdk.create({
+        await defaultModel.create({
           id: 'uuid',
           data: { keywords: ['keyword1', 'keyword2'] },
           fields: 'keywords'
         });
       } catch (err) {
-        expect(err).instanceof(DynamoSdk.DefaultEntryExistsError);
+        expect(err).instanceof(DefaultEntryExistsError);
         expect(err.message).to.equal('Entry exists.');
         checkCallbackLog([]);
         await nockDone();
@@ -152,7 +154,7 @@ describe('Dynamo Sdk Tests', () => {
   describe('Testing Update', () => {
     it('Testing Update', async () => {
       const nockDone = await new Promise(resolve => nockBack('sdkUpdate.json', {}, resolve));
-      const result = await sdk.update({
+      const result = await defaultModel.update({
         id: 'uuid',
         data: { keywords: ['keyword1'] },
         fields: 'keywords'
@@ -165,13 +167,13 @@ describe('Dynamo Sdk Tests', () => {
     it('Testing Update Not Found', async () => {
       const nockDone = await new Promise(resolve => nockBack('sdkUpdateNotFound.json', {}, resolve));
       try {
-        await sdk.update({
+        await defaultModel.update({
           id: 'uuid',
           data: { keywords: ['keyword1'] },
           fields: 'keywords'
         });
       } catch (err) {
-        expect(err).instanceof(DynamoSdk.DefaultEntryNotFoundError);
+        expect(err).instanceof(DefaultEntryNotFoundError);
         checkCallbackLog([]);
         await nockDone();
       }
@@ -181,7 +183,7 @@ describe('Dynamo Sdk Tests', () => {
   describe('Testing Delete', () => {
     it('Testing Delete', async () => {
       const nockDone = await new Promise(resolve => nockBack('sdkDelete.json', {}, resolve));
-      await sdk.delete({ id: 'uuid' });
+      await defaultModel.delete({ id: 'uuid' });
       checkCallbackLog(['delete']);
       await nockDone();
     });
@@ -189,9 +191,9 @@ describe('Dynamo Sdk Tests', () => {
     it('Testing Delete Not Found', async () => {
       const nockDone = await new Promise(resolve => nockBack('sdkDeleteNotFound.json', {}, resolve));
       try {
-        await sdk.delete({ id: 'uuid' });
+        await defaultModel.delete({ id: 'uuid' });
       } catch (err) {
-        expect(err).instanceof(DynamoSdk.DefaultEntryNotFoundError);
+        expect(err).instanceof(DefaultEntryNotFoundError);
         checkCallbackLog([]);
         await nockDone();
       }
