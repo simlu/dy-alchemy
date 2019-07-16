@@ -21,6 +21,12 @@ module.exports = ({
   assert(typeof tableName === 'string');
   const aws = AWS({ config: awsConfig });
   const dynamodbConverter = aws.get('dynamodb.converter');
+  const internalCallback = ({ id, actionType }) => callback({
+    id,
+    modelName,
+    tableName,
+    actionType
+  });
   const get = async ({ id, fields }) => {
     const resp = await aws.call('dynamodb:getItem', {
       TableName: tableName,
@@ -31,7 +37,7 @@ module.exports = ({
     if (resp.Item === undefined) {
       throw EntryNotFound({ id });
     }
-    await callback({ tableName, actionType: 'get', id });
+    await internalCallback({ id, actionType: 'get' });
     return dynamodbConverter.unmarshall(resp.Item);
   };
 
@@ -49,7 +55,7 @@ module.exports = ({
       if (resp === 'ConditionalCheckFailedException') {
         throw EntryExists({ id });
       }
-      await callback({ tableName, actionType: 'create', id });
+      await internalCallback({ id, actionType: 'create' });
       return get({ id, fields });
     },
     update: async ({ id, data, fields }) => {
@@ -71,7 +77,7 @@ module.exports = ({
       if (resp === 'ConditionalCheckFailedException') {
         throw EntryNotFound({ id });
       }
-      await callback({ tableName, actionType: 'update', id });
+      await internalCallback({ id, actionType: 'update' });
       return get({ id, fields });
     },
     delete: async ({ id }) => {
@@ -86,7 +92,7 @@ module.exports = ({
       if (resp === 'ConditionalCheckFailedException') {
         throw EntryNotFound({ id });
       }
-      await callback({ tableName, actionType: 'delete', id });
+      await internalCallback({ id, actionType: 'delete' });
     }
   };
 };
