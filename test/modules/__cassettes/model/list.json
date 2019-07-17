@@ -1,0 +1,37 @@
+[
+  {
+    "scope": "https://dynamodb.us-west-2.amazonaws.com:443",
+    "method": "POST",
+    "path": "/",
+    "body": {
+      "TableName": "dy-alchemy-table",
+      "IndexName": "index-name",
+      "ExpressionAttributeNames": {
+        "#TITLE": "title",
+        "#YEAR": "year"
+      },
+      "ExpressionAttributeValues": {
+        ":title": {
+          "S": "title"
+        },
+        ":year": {
+          "N": "1980"
+        }
+      },
+      "KeyConditionExpression": "#TITLE = :title AND #YEAR = :year",
+      "ProjectionExpression": "#TITLE"
+    },
+    "status": 200,
+    "response": {
+      "Count": 1,
+      "Items": [
+        {
+          "title": {
+            "S": "title"
+          }
+        }
+      ],
+      "ScannedCount": 1
+    }
+  }
+]

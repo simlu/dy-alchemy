@@ -5,6 +5,9 @@ const { DefaultEntryNotFoundError, DefaultEntryExistsError } = require('./errors
 const DefaultEntryNotFound = ({ id }) => new DefaultEntryNotFoundError(id);
 const DefaultEntryExists = ({ id }) => new DefaultEntryExistsError(id);
 
+const generateExpressionAttributeNames = keys => Object.assign({}, keys
+  .reduce((p, k) => Object.assign(p, { [`#${k.toUpperCase()}`]: k }), {}), {});
+
 module.exports = ({
   modelName,
   tableName,
@@ -33,9 +36,11 @@ module.exports = ({
   };
   const get = async ({ id, fields }) => {
     precheck();
+    const splitFields = objectFields.split(fields);
     const resp = await aws.call('dynamodb:getItem', {
       TableName: tableName,
-      ProjectionExpression: objectFields.split(fields).join(','),
+      ExpressionAttributeNames: generateExpressionAttributeNames(splitFields),
+      ProjectionExpression: splitFields.map(f => `#${f.toUpperCase()}`).join(','),
       Key: { id: { S: id } },
       ConsistentRead: true
     });
@@ -69,8 +74,7 @@ module.exports = ({
       const resp = await aws.call('dynamodb:updateItem', {
         Key: { id: { S: id } },
         ConditionExpression: 'id = :id',
-        ExpressionAttributeNames: Object.assign({}, Object.keys(data)
-          .reduce((p, k) => Object.assign(p, { [`#${k.toUpperCase()}`]: k }), {}), {}),
+        ExpressionAttributeNames: generateExpressionAttributeNames(Object.keys(data)),
         ExpressionAttributeValues: Object.assign(
           {},
           Object.entries(data).reduce((p, [k, v]) => Object.assign(p, { [`:${k}`]: dynamodbConverter.input(v) }), {}),
@@ -101,6 +105,21 @@ module.exports = ({
         throw EntryNotFound({ id });
       }
       await internalCallback({ id, actionType: 'delete' });
+    },
+    list: async ({ indexName, indexMap, fields }) => {
+      precheck();
+      const splitFields = objectFields.split(fields);
+      const resp = await aws.call('dynamodb:query', {
+        TableName: tableName,
+        IndexName: indexName,
+        ExpressionAttributeNames: generateExpressionAttributeNames(Object.keys(indexMap).concat(splitFields)),
+        ExpressionAttributeValues: Object.assign({}, Object.entries(indexMap).reduce((p, [k, v]) => Object.assign(p, {
+          [`:${k}`]: dynamodbConverter.input(v)
+        }), {}), {}),
+        KeyConditionExpression: `${Object.keys(indexMap).map(k => `#${k.toUpperCase()} = :${k}`).join(' AND ')}`,
+        ProjectionExpression: splitFields.map(f => `#${f.toUpperCase()}`).join(',')
+      });
+      return resp.Items.map(i => dynamodbConverter.unmarshall(i));
     }
   };
 };
