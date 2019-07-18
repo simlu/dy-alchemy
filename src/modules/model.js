@@ -40,9 +40,6 @@ module.exports = ({
   };
   const get = async ({ id, fields }) => {
     precheck();
-    Object.assign(new Model(), {
-      id
-    });
     let resp;
     try {
       resp = await mapper.get(Object.assign(new Model(), { id }), {
