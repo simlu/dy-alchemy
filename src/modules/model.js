@@ -7,9 +7,9 @@ const DefaultEntryNotFound = ({ id }) => new DefaultEntryNotFoundError(id);
 const DefaultEntryExists = ({ id }) => new DefaultEntryExistsError(id);
 
 module.exports = ({
-  schema,
   modelName,
   tableName,
+  schema,
   awsConfig = {},
   errorMap: {
     EntryNotFound = DefaultEntryNotFound,

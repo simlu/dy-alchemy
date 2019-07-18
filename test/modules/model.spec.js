@@ -42,18 +42,18 @@ const awsConfig = {
 describe('Dynamo Sdk Tests', () => {
   let callbackLog = [];
   const defaultModel = DynamoModel({
-    schema,
     modelName: 'default',
     tableName: 'dy-alchemy-table',
+    schema,
     awsConfig,
     callback: (args) => {
       callbackLog.push(args);
     }
   });
   const customErrorModel = DynamoModel({
-    schema,
     modelName: 'customErrorMap',
     tableName: 'dy-alchemy-table',
+    schema,
     awsConfig,
     errorMap: {
       EntryExists: CustomEntryExists,
