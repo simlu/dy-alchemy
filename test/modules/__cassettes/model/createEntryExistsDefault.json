@@ -4,9 +4,12 @@
     "method": "POST",
     "path": "/",
     "body": {
-      "ConditionExpression": "id <> :id",
+      "ConditionExpression": "#attr0 <> :val1",
+      "ExpressionAttributeNames": {
+        "#attr0": "id"
+      },
       "ExpressionAttributeValues": {
-        ":id": {
+        ":val1": {
           "S": "uuid"
         }
       },

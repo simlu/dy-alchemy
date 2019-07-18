@@ -1,14 +1,13 @@
 const AWS = require('aws-sdk-wrap');
 const objectFields = require('object-fields');
+const { DataMapper } = require('@aws/dynamodb-data-mapper');
 const { DefaultEntryNotFoundError, DefaultEntryExistsError } = require('./errors');
 
 const DefaultEntryNotFound = ({ id }) => new DefaultEntryNotFoundError(id);
 const DefaultEntryExists = ({ id }) => new DefaultEntryExistsError(id);
 
-const generateExpressionAttributeNames = keys => Object.assign({}, keys
-  .reduce((p, k) => Object.assign(p, { [`#${k.toUpperCase()}`]: k }), {}), {});
-
 module.exports = ({
+  Model,
   modelName,
   tableName,
   awsConfig = {},
@@ -19,7 +18,7 @@ module.exports = ({
   callback = () => {}
 }) => {
   const aws = AWS({ config: awsConfig });
-  const dynamodbConverter = aws.get('dynamodb.converter');
+  const mapper = new DataMapper({ client: aws.get('dynamodb') });
   const internalCallback = ({ id, actionType }) => callback({
     id,
     modelName,
@@ -36,90 +35,97 @@ module.exports = ({
   };
   const get = async ({ id, fields }) => {
     precheck();
-    const splitFields = objectFields.split(fields);
-    const resp = await aws.call('dynamodb:getItem', {
-      TableName: tableName,
-      ExpressionAttributeNames: generateExpressionAttributeNames(splitFields),
-      ProjectionExpression: splitFields.map(f => `#${f.toUpperCase()}`).join(','),
-      Key: { id: { S: id } },
-      ConsistentRead: true
+    Object.assign(new Model(), {
+      id
     });
-    if (resp.Item === undefined) {
-      throw EntryNotFound({ id });
+    let resp;
+    try {
+      resp = await mapper.get(Object.assign(new Model(), { id }), {
+        projection: objectFields.split(fields),
+        readConsistency: 'strong'
+      });
+    } catch (err) {
+      if (err.name === 'ItemNotFoundException') {
+        throw EntryNotFound({ id });
+      }
+      throw err;
     }
     await internalCallback({ id, actionType: 'get' });
-    return dynamodbConverter.unmarshall(resp.Item);
+    return resp;
   };
 
   return {
     get,
     create: async ({ id, data, fields }) => {
       precheck();
-      const resp = await aws.call('dynamodb:putItem', {
-        ConditionExpression: 'id <> :id',
-        ExpressionAttributeValues: { ':id': { S: id } },
-        TableName: tableName,
-        Item: dynamodbConverter.marshall(Object.assign({}, data, { id }))
-      }, {
-        expectedErrorCodes: ['ConditionalCheckFailedException']
-      });
-      if (resp === 'ConditionalCheckFailedException') {
-        throw EntryExists({ id });
+      try {
+        await mapper.put(Object.assign(new Model(), data, { id }), {
+          condition: {
+            subject: 'id',
+            type: 'NotEquals',
+            object: id
+          }
+        });
+      } catch (err) {
+        if (err.name === 'ConditionalCheckFailedException') {
+          throw EntryExists({ id });
+        }
+        throw err;
       }
       await internalCallback({ id, actionType: 'create' });
       return get({ id, fields });
     },
     update: async ({ id, data, fields }) => {
       precheck();
-      const resp = await aws.call('dynamodb:updateItem', {
-        Key: { id: { S: id } },
-        ConditionExpression: 'id = :id',
-        ExpressionAttributeNames: generateExpressionAttributeNames(Object.keys(data)),
-        ExpressionAttributeValues: Object.assign(
-          {},
-          Object.entries(data).reduce((p, [k, v]) => Object.assign(p, { [`:${k}`]: dynamodbConverter.input(v) }), {}),
-          { ':id': { S: id } }
-        ),
-        UpdateExpression: `SET ${Object.keys(data).map(k => `#${k.toUpperCase()} = :${k}`).join(', ')}`,
-        TableName: tableName
-      }, {
-        expectedErrorCodes: ['ConditionalCheckFailedException']
-      });
-      if (resp === 'ConditionalCheckFailedException') {
-        throw EntryNotFound({ id });
+      try {
+        await mapper.update(Object.assign(new Model(), data, { id }), {
+          condition: {
+            subject: 'id',
+            type: 'Equals',
+            object: id
+          },
+          onMissing: 'skip'
+        });
+      } catch (err) {
+        if (err.code === 'ConditionalCheckFailedException') {
+          throw EntryNotFound({ id });
+        }
+        throw err;
       }
       await internalCallback({ id, actionType: 'update' });
       return get({ id, fields });
     },
     delete: async ({ id }) => {
       precheck();
-      const resp = await aws.call('dynamodb:deleteItem', {
-        ConditionExpression: 'id = :id',
-        ExpressionAttributeValues: { ':id': { S: id } },
-        TableName: tableName,
-        Key: { id: { S: id } }
-      }, {
-        expectedErrorCodes: ['ConditionalCheckFailedException']
-      });
-      if (resp === 'ConditionalCheckFailedException') {
-        throw EntryNotFound({ id });
+      try {
+        await mapper.delete(Object.assign(new Model(), { id }), {
+          condition: {
+            subject: 'id',
+            type: 'Equals',
+            object: id
+          },
+          returnValues: 'NONE'
+        });
+      } catch (err) {
+        if (err.code === 'ConditionalCheckFailedException') {
+          throw EntryNotFound({ id });
+        }
+        throw err;
       }
       await internalCallback({ id, actionType: 'delete' });
     },
     list: async ({ indexName, indexMap, fields }) => {
       precheck();
-      const splitFields = objectFields.split(fields);
-      const resp = await aws.call('dynamodb:query', {
-        TableName: tableName,
-        IndexName: indexName,
-        ExpressionAttributeNames: generateExpressionAttributeNames(Object.keys(indexMap).concat(splitFields)),
-        ExpressionAttributeValues: Object.assign({}, Object.entries(indexMap).reduce((p, [k, v]) => Object.assign(p, {
-          [`:${k}`]: dynamodbConverter.input(v)
-        }), {}), {}),
-        KeyConditionExpression: `${Object.keys(indexMap).map(k => `#${k.toUpperCase()} = :${k}`).join(' AND ')}`,
-        ProjectionExpression: splitFields.map(f => `#${f.toUpperCase()}`).join(',')
+      const iterator = mapper.query(Model, indexMap, {
+        indexName,
+        projection: objectFields.split(fields)
       });
-      return resp.Items.map(i => dynamodbConverter.unmarshall(i));
+      const resp = [];
+      // eslint-disable-next-line no-restricted-syntax
+      for await (const r of iterator) {
+        resp.push(r);
+      }
+      return resp;
     }
   };
 };

@@ -1,6 +1,7 @@
 const path = require('path');
 const expect = require('chai').expect;
 const nockBack = require('nock').back;
+const { DynamoDbSchema, DynamoDbTable } = require('@aws/dynamodb-data-mapper');
 const DynamoModel = require('../../src/modules/model');
 const { DefaultEntryExistsError, DefaultEntryNotFoundError } = require('../../src/modules/errors');
 
@@ -20,6 +21,30 @@ class CustomEntryNotFoundError extends Error {
 const CustomEntryExists = ({ id }) => new CustomEntryExistsError(id);
 const CustomEntryNotFound = ({ id }) => new CustomEntryNotFoundError(id);
 
+class Model {
+}
+
+Object.defineProperties(Model.prototype, {
+  [DynamoDbTable]: {
+    value: 'dy-alchemy-table'
+  },
+  [DynamoDbSchema]: {
+    value: {
+      id: {
+        type: 'String',
+        keyType: 'HASH'
+      },
+      title: {
+        type: 'String'
+      },
+      keywords: {
+        type: 'List',
+        memberType: { type: 'String' }
+      }
+    }
+  }
+});
+
 const awsConfig = {
   region: 'us-west-2',
   accessKeyId: 'XXXXXXXXXXXXXXXXXXXX',
@@ -28,6 +53,7 @@ const awsConfig = {
 describe('Dynamo Sdk Tests', () => {
   let callbackLog = [];
   const defaultModel = DynamoModel({
+    Model,
     modelName: 'default',
     tableName: 'dy-alchemy-table',
     awsConfig,
@@ -36,6 +62,7 @@ describe('Dynamo Sdk Tests', () => {
     }
   });
   const customErrorModel = DynamoModel({
+    Model,
     modelName: 'customErrorMap',
     tableName: 'dy-alchemy-table',
     awsConfig,
@@ -114,6 +141,17 @@ describe('Dynamo Sdk Tests', () => {
         await nockDone();
       }
     });
+
+    it('Testing Get Error', async () => {
+      const nockDone = await new Promise(resolve => nockBack('model/getError.json', {}, resolve));
+      try {
+        await defaultModel.get({ id: 'uuid', fields: 'keywords' });
+      } catch (err) {
+        expect(err.code).to.equal('UnknownError');
+        checkCallbackLog([]);
+        await nockDone();
+      }
+    });
   });
 
   describe('Testing Create', () => {
@@ -159,6 +197,21 @@ describe('Dynamo Sdk Tests', () => {
         await nockDone();
       }
     });
+
+    it('Testing Create Error', async () => {
+      const nockDone = await new Promise(resolve => nockBack('model/createError.json', {}, resolve));
+      try {
+        await defaultModel.create({
+          id: 'uuid',
+          data: { keywords: ['keyword1', 'keyword2'] },
+          fields: 'keywords'
+        });
+      } catch (err) {
+        expect(err.code).to.equal('UnknownError');
+        checkCallbackLog([]);
+        await nockDone();
+      }
+    });
   });
 
   describe('Testing Update', () => {
@@ -188,6 +241,21 @@ describe('Dynamo Sdk Tests', () => {
         await nockDone();
       }
     });
+
+    it('Testing Update Error', async () => {
+      const nockDone = await new Promise(resolve => nockBack('model/updateError.json', {}, resolve));
+      try {
+        await defaultModel.update({
+          id: 'uuid',
+          data: { keywords: ['keyword1'] },
+          fields: 'keywords'
+        });
+      } catch (err) {
+        expect(err.code).to.equal('UnknownError');
+        checkCallbackLog([]);
+        await nockDone();
+      }
+    });
   });
 
   describe('Testing Delete', () => {
@@ -204,6 +272,17 @@ describe('Dynamo Sdk Tests', () => {
         await defaultModel.delete({ id: 'uuid' });
       } catch (err) {
         expect(err).instanceof(DefaultEntryNotFoundError);
+        checkCallbackLog([]);
+        await nockDone();
+      }
+    });
+
+    it('Testing Delete Error', async () => {
+      const nockDone = await new Promise(resolve => nockBack('model/deleteError.json', {}, resolve));
+      try {
+        await defaultModel.delete({ id: 'uuid' });
+      } catch (err) {
+        expect(err.code).to.equal('UnknownError');
         checkCallbackLog([]);
         await nockDone();
       }
