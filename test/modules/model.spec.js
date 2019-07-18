@@ -1,7 +1,6 @@
 const path = require('path');
 const expect = require('chai').expect;
 const nockBack = require('nock').back;
-const { DynamoDbSchema, DynamoDbTable } = require('@aws/dynamodb-data-mapper');
 const DynamoModel = require('../../src/modules/model');
 const { DefaultEntryExistsError, DefaultEntryNotFoundError } = require('../../src/modules/errors');
 
@@ -21,29 +20,19 @@ class CustomEntryNotFoundError extends Error {
 const CustomEntryExists = ({ id }) => new CustomEntryExistsError(id);
 const CustomEntryNotFound = ({ id }) => new CustomEntryNotFoundError(id);
 
-class Model {
-}
-
-Object.defineProperties(Model.prototype, {
-  [DynamoDbTable]: {
-    value: 'dy-alchemy-table'
+const schema = {
+  id: {
+    type: 'String',
+    keyType: 'HASH'
   },
-  [DynamoDbSchema]: {
-    value: {
-      id: {
-        type: 'String',
-        keyType: 'HASH'
-      },
-      title: {
-        type: 'String'
-      },
-      keywords: {
-        type: 'List',
-        memberType: { type: 'String' }
-      }
-    }
+  title: {
+    type: 'String'
+  },
+  keywords: {
+    type: 'List',
+    memberType: { type: 'String' }
   }
-});
+};
 
 const awsConfig = {
   region: 'us-west-2',
@@ -53,7 +42,7 @@ const awsConfig = {
 describe('Dynamo Sdk Tests', () => {
   let callbackLog = [];
   const defaultModel = DynamoModel({
-    Model,
+    schema,
     modelName: 'default',
     tableName: 'dy-alchemy-table',
     awsConfig,
@@ -62,7 +51,7 @@ describe('Dynamo Sdk Tests', () => {
     }
   });
   const customErrorModel = DynamoModel({
-    Model,
+    schema,
     modelName: 'customErrorMap',
     tableName: 'dy-alchemy-table',
     awsConfig,

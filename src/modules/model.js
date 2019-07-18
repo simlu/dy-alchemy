@@ -1,13 +1,13 @@
 const AWS = require('aws-sdk-wrap');
 const objectFields = require('object-fields');
-const { DataMapper } = require('@aws/dynamodb-data-mapper');
+const { DataMapper, DynamoDbSchema, DynamoDbTable } = require('@aws/dynamodb-data-mapper');
 const { DefaultEntryNotFoundError, DefaultEntryExistsError } = require('./errors');
 
 const DefaultEntryNotFound = ({ id }) => new DefaultEntryNotFoundError(id);
 const DefaultEntryExists = ({ id }) => new DefaultEntryExistsError(id);
 
 module.exports = ({
-  Model,
+  schema,
   modelName,
   tableName,
   awsConfig = {},
@@ -17,6 +17,11 @@ module.exports = ({
   } = {},
   callback = () => {}
 }) => {
+  class Model {}
+  Object.defineProperties(Model.prototype, {
+    [DynamoDbTable]: { value: tableName },
+    [DynamoDbSchema]: { value: schema }
+  });
   const aws = AWS({ config: awsConfig });
   const mapper = new DataMapper({ client: aws.get('dynamodb') });
   const internalCallback = ({ id, actionType }) => callback({
