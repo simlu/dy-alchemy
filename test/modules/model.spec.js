@@ -209,4 +209,17 @@ describe('Dynamo Sdk Tests', () => {
       }
     });
   });
+
+  describe('Testing List', () => {
+    it('Testing List', async () => {
+      const nockDone = await new Promise(resolve => nockBack('model/list.json', {}, resolve));
+      const modelList = await defaultModel.list({
+        indexName: 'index-name',
+        indexMap: { title: 'title', year: 1980 },
+        fields: 'title'
+      });
+      expect(modelList).to.deep.equal([{ title: 'title' }]);
+      await nockDone();
+    }).timeout(50000);
+  });
 });

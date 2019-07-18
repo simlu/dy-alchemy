@@ -5,7 +5,10 @@
     "path": "/",
     "body": {
       "TableName": "dy-alchemy-table",
-      "ProjectionExpression": "keywords",
+      "ExpressionAttributeNames": {
+        "#KEYWORDS": "keywords"
+      },
+      "ProjectionExpression": "#KEYWORDS",
       "Key": {
         "id": {
           "S": "uuid"

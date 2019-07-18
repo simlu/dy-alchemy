@@ -116,6 +116,21 @@ _Params_
 
 * `id` string: Id of model to delete
 
+#### List
+
+Query for a list of objects using [Dynamodb::Query](https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/DynamoDB.html#query-property)
+
+<!-- eslint-disable no-undef -->
+```js
+modelName.list({ indexName, indexMap, fields });
+```
+
+_Params_
+
+* `indexName` string: Name of index to query against
+* `indexMap` { [string]: any }: Key / Value map of index attributes to match against
+* `fields` string: [object-fields](https://github.com/blackflux/object-fields) representation of the fields to return
+
 ## Lock Manager
 
 Wrapper around [dynamodb-lock-client](https://www.npmjs.com/package/dynamodb-lock-client) with lazy initialization.
