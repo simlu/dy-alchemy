@@ -27,13 +27,13 @@ This library comes with a basic object relational mapper (ORM) for interacting w
 ```js
 const { Model } = require('dy-alchemy');
 
-const model = Model({
+const model = new Model({
   modelName: 'model-name',
   tableName: 'dynamo-table-name',
   awsConfig: {},
   errorMap: {
-    EntryNotFound: ({ id }) => { /* ... */ },
-    EntryExists: ({ id }) => { /* ... */ }
+    ItemNotFound: ({ id }) => { /* ... */ },
+    ItemExists: ({ id }) => { /* ... */ }
   },
   callback: (/* {
     id, modelName, tableName, actionType
@@ -46,6 +46,7 @@ _Params_
 
 * `modelName` _string_: Name of model being accessed
 * `tableName` _string_: Name of Dynamo Table associated with model
+* `schema` _{ [string]: object }_: [DataMapper](https://github.com/awslabs/dynamodb-data-mapper-js/tree/master/packages/dynamodb-data-mapper) style schema
 * `awsConfig` _object_: Optional hard coded config passed to aws-sdk
 * `errorMap` _object_: Optional Key / Value map to allow custom errors
 * `callback` _function_: Optional hook after successful actions, `actionType` may be one of ['get', 'create', 'update', 'delete']

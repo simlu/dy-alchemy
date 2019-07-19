@@ -4,7 +4,7 @@
     "method": "POST",
     "path": "/",
     "body": {
-      "ConditionExpression": "#attr0 = :val1",
+      "ConditionExpression": "#attr0 <> :val1",
       "ExpressionAttributeNames": {
         "#attr0": "id"
       },
@@ -14,12 +14,21 @@
         }
       },
       "TableName": "dy-alchemy-table",
-      "Key": {
+      "Item": {
         "id": {
           "S": "uuid"
+        },
+        "keywords": {
+          "L": [
+            {
+              "S": "keyword1"
+            },
+            {
+              "S": "keyword2"
+            }
+          ]
         }
-      },
-      "ReturnValues": "NONE"
+      }
     },
     "status": 400,
     "response": {

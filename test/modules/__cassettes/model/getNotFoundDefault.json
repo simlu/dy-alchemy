@@ -6,9 +6,9 @@
     "body": {
       "TableName": "dy-alchemy-table",
       "ExpressionAttributeNames": {
-        "#KEYWORDS": "keywords"
+        "#attr0": "keywords"
       },
-      "ProjectionExpression": "#KEYWORDS",
+      "ProjectionExpression": "#attr0",
       "Key": {
         "id": {
           "S": "uuid"

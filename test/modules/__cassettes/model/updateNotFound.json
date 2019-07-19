@@ -9,24 +9,26 @@
           "S": "uuid"
         }
       },
-      "ConditionExpression": "id = :id",
+      "ConditionExpression": "#attr0 = :val1",
       "ExpressionAttributeNames": {
-        "#KEYWORDS": "keywords"
+        "#attr0": "id",
+        "#attr2": "keywords"
       },
       "ExpressionAttributeValues": {
-        ":keywords": {
+        ":val1": {
+          "S": "uuid"
+        },
+        ":val3": {
           "L": [
             {
               "S": "keyword1"
             }
           ]
-        },
-        ":id": {
-          "S": "uuid"
         }
       },
-      "UpdateExpression": "SET #KEYWORDS = :keywords",
-      "TableName": "dy-alchemy-table"
+      "UpdateExpression": "SET #attr2 = :val3",
+      "TableName": "dy-alchemy-table",
+      "ReturnValues": "ALL_NEW"
     },
     "status": 400,
     "response": {

@@ -1,125 +1,168 @@
 const AWS = require('aws-sdk-wrap');
 const objectFields = require('object-fields');
-const { DefaultEntryNotFoundError, DefaultEntryExistsError } = require('./errors');
+const { DataMapper, DynamoDbSchema, DynamoDbTable } = require('@aws/dynamodb-data-mapper');
+const { DefaultItemNotFoundError, DefaultItemExistsError } = require('./errors');
 
-const DefaultEntryNotFound = ({ id }) => new DefaultEntryNotFoundError(id);
-const DefaultEntryExists = ({ id }) => new DefaultEntryExistsError(id);
+const DefaultItemNotFound = ({ id }) => new DefaultItemNotFoundError(id);
+const DefaultItemExists = ({ id }) => new DefaultItemExistsError(id);
 
-const generateExpressionAttributeNames = keys => Object.assign({}, keys
-  .reduce((p, k) => Object.assign(p, { [`#${k.toUpperCase()}`]: k }), {}), {});
-
-module.exports = ({
-  modelName,
-  tableName,
-  awsConfig = {},
-  errorMap: {
-    EntryNotFound = DefaultEntryNotFound,
-    EntryExists = DefaultEntryExists
-  } = {},
-  callback = () => {}
-}) => {
-  const aws = AWS({ config: awsConfig });
-  const dynamodbConverter = aws.get('dynamodb.converter');
-  const internalCallback = ({ id, actionType }) => callback({
-    id,
+class Model {
+  constructor({
     modelName,
     tableName,
-    actionType
-  });
-  const precheck = () => {
-    Object.entries({ modelName, tableName })
+    schema,
+    awsConfig,
+    errorMap: {
+      ItemNotFound = DefaultItemNotFound,
+      ItemExists = DefaultItemExists
+    } = {},
+    callback = () => {}
+  }) {
+    class MapperClass {
+      constructor(kwargs) {
+        Object.assign(this, kwargs);
+      }
+    }
+    Object.defineProperties(MapperClass.prototype, {
+      [DynamoDbTable]: { value: tableName },
+      [DynamoDbSchema]: { value: schema }
+    });
+    const aws = AWS({ config: awsConfig });
+    this.mapper = new DataMapper({ client: aws.get('dynamodb') });
+    this.modelName = modelName;
+    this.tableName = tableName;
+    this.MapperClass = MapperClass;
+    this.ItemNotFound = ItemNotFound;
+    this.ItemExists = ItemExists;
+    this.callback = callback;
+  }
+
+  // eslint-disable-next-line no-underscore-dangle
+  _before() {
+    Object.entries({
+      modelName: this.modelName,
+      tableName: this.tableName
+    })
       .forEach(([key, value]) => {
         if (typeof value !== 'string' || value === '') {
           throw new Error(`Missing required value: ${key}`);
         }
       });
-  };
-  const get = async ({ id, fields }) => {
-    precheck();
-    const splitFields = objectFields.split(fields);
-    const resp = await aws.call('dynamodb:getItem', {
-      TableName: tableName,
-      ExpressionAttributeNames: generateExpressionAttributeNames(splitFields),
-      ProjectionExpression: splitFields.map(f => `#${f.toUpperCase()}`).join(','),
-      Key: { id: { S: id } },
-      ConsistentRead: true
-    });
-    if (resp.Item === undefined) {
-      throw EntryNotFound({ id });
-    }
-    await internalCallback({ id, actionType: 'get' });
-    return dynamodbConverter.unmarshall(resp.Item);
-  };
+  }
 
-  return {
-    get,
-    create: async ({ id, data, fields }) => {
-      precheck();
-      const resp = await aws.call('dynamodb:putItem', {
-        ConditionExpression: 'id <> :id',
-        ExpressionAttributeValues: { ':id': { S: id } },
-        TableName: tableName,
-        Item: dynamodbConverter.marshall(Object.assign({}, data, { id }))
-      }, {
-        expectedErrorCodes: ['ConditionalCheckFailedException']
+  // eslint-disable-next-line no-underscore-dangle
+  _callback(actionType, id) {
+    return this.callback({
+      id,
+      actionType,
+      modelName: this.modelName,
+      tableName: this.tableName
+    });
+  }
+
+  async get({ id, fields }) {
+    // eslint-disable-next-line no-underscore-dangle
+    this._before();
+    let resp;
+    try {
+      resp = await this.mapper.get(new this.MapperClass({ id }), {
+        projection: objectFields.split(fields),
+        readConsistency: 'strong'
       });
-      if (resp === 'ConditionalCheckFailedException') {
-        throw EntryExists({ id });
+    } catch (err) {
+      if (err.name === 'ItemNotFoundException') {
+        throw this.ItemNotFound({ id });
       }
-      await internalCallback({ id, actionType: 'create' });
-      return get({ id, fields });
-    },
-    update: async ({ id, data, fields }) => {
-      precheck();
-      const resp = await aws.call('dynamodb:updateItem', {
-        Key: { id: { S: id } },
-        ConditionExpression: 'id = :id',
-        ExpressionAttributeNames: generateExpressionAttributeNames(Object.keys(data)),
-        ExpressionAttributeValues: Object.assign(
-          {},
-          Object.entries(data).reduce((p, [k, v]) => Object.assign(p, { [`:${k}`]: dynamodbConverter.input(v) }), {}),
-          { ':id': { S: id } }
-        ),
-        UpdateExpression: `SET ${Object.keys(data).map(k => `#${k.toUpperCase()} = :${k}`).join(', ')}`,
-        TableName: tableName
-      }, {
-        expectedErrorCodes: ['ConditionalCheckFailedException']
-      });
-      if (resp === 'ConditionalCheckFailedException') {
-        throw EntryNotFound({ id });
-      }
-      await internalCallback({ id, actionType: 'update' });
-      return get({ id, fields });
-    },
-    delete: async ({ id }) => {
-      precheck();
-      const resp = await aws.call('dynamodb:deleteItem', {
-        ConditionExpression: 'id = :id',
-        ExpressionAttributeValues: { ':id': { S: id } },
-        TableName: tableName,
-        Key: { id: { S: id } }
-      }, {
-        expectedErrorCodes: ['ConditionalCheckFailedException']
-      });
-      if (resp === 'ConditionalCheckFailedException') {
-        throw EntryNotFound({ id });
-      }
-      await internalCallback({ id, actionType: 'delete' });
-    },
-    list: async ({ indexName, indexMap, fields }) => {
-      precheck();
-      const splitFields = objectFields.split(fields);
-      const resp = await aws.call('dynamodb:query', {
-        TableName: tableName,
-        IndexName: indexName,
-        ExpressionAttributeNames: generateExpressionAttributeNames(Object.keys(indexMap).concat(splitFields)),
-        ExpressionAttributeValues: Object.assign({}, Object.entries(indexMap).reduce((p, [k, v]) => Object.assign(p, {
-          [`:${k}`]: dynamodbConverter.input(v)
-        }), {}), {}),
-        KeyConditionExpression: `${Object.keys(indexMap).map(k => `#${k.toUpperCase()} = :${k}`).join(' AND ')}`,
-        ProjectionExpression: splitFields.map(f => `#${f.toUpperCase()}`).join(',')
-      });
-      return resp.Items.map(i => dynamodbConverter.unmarshall(i));
+      throw err;
     }
-  };
-};
+    // eslint-disable-next-line no-underscore-dangle
+    await this._callback('get', id);
+    return resp;
+  }
+
+  async create({ id, data, fields }) {
+    // eslint-disable-next-line no-underscore-dangle
+    this._before();
+    try {
+      await this.mapper.put(new this.MapperClass({ ...data, id }), {
+        condition: {
+          subject: 'id',
+          type: 'NotEquals',
+          object: id
+        }
+      });
+    } catch (err) {
+      if (err.name === 'ConditionalCheckFailedException') {
+        throw this.ItemExists({ id });
+      }
+      throw err;
+    }
+    // eslint-disable-next-line no-underscore-dangle
+    await this._callback('create', id);
+    return this.get({ id, fields });
+  }
+
+  async update({ id, data, fields }) {
+    // eslint-disable-next-line no-underscore-dangle
+    this._before();
+    try {
+      await this.mapper.update(new this.MapperClass({ ...data, id }), {
+        condition: {
+          subject: 'id',
+          type: 'Equals',
+          object: id
+        },
+        onMissing: 'skip'
+      });
+    } catch (err) {
+      if (err.code === 'ConditionalCheckFailedException') {
+        throw this.ItemNotFound({ id });
+      }
+      throw err;
+    }
+    // eslint-disable-next-line no-underscore-dangle
+    await this._callback('update', id);
+    return this.get({ id, fields });
+  }
+
+  async delete({ id }) {
+    // eslint-disable-next-line no-underscore-dangle
+    this._before();
+    try {
+      await this.mapper.delete(new this.MapperClass({ id }), {
+        condition: {
+          subject: 'id',
+          type: 'Equals',
+          object: id
+        },
+        returnValues: 'NONE'
+      });
+    } catch (err) {
+      if (err.code === 'ConditionalCheckFailedException') {
+        throw this.ItemNotFound({ id });
+      }
+      throw err;
+    }
+    // eslint-disable-next-line no-underscore-dangle
+    await this._callback('delete', id);
+  }
+
+  async list({ indexName, indexMap, fields }) {
+    // eslint-disable-next-line no-underscore-dangle
+    this._before();
+    const iterator = this.mapper.query(this.MapperClass, indexMap, {
+      indexName,
+      projection: objectFields.split(fields)
+    });
+    const resp = [];
+    // eslint-disable-next-line no-restricted-syntax
+    for await (const r of iterator) {
+      resp.push(r);
+      // eslint-disable-next-line no-underscore-dangle
+      await this._callback('list', r.id);
+    }
+    return resp;
+  }
+}
+
+module.exports = Model;

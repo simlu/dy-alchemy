@@ -4,13 +4,16 @@
     "method": "POST",
     "path": "/",
     "body": {
-      "ConditionExpression": "id <> :id",
+      "TableName": "dy-alchemy-table",
+      "ConditionExpression": "#attr0 <> :val1",
+      "ExpressionAttributeNames": {
+        "#attr0": "id"
+      },
       "ExpressionAttributeValues": {
-        ":id": {
+        ":val1": {
           "S": "uuid"
         }
       },
-      "TableName": "dy-alchemy-table",
       "Item": {
         "id": {
           "S": "uuid"
@@ -28,9 +31,6 @@
       }
     },
     "status": 400,
-    "response": {
-      "__type": "com.amazonaws.dynamodb.v20120810#ConditionalCheckFailedException",
-      "message": "The conditional request failed"
-    }
+    "response": "Error"
   }
 ]

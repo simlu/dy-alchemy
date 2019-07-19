@@ -7,25 +7,29 @@
       "TableName": "dy-alchemy-table",
       "IndexName": "index-name",
       "ExpressionAttributeNames": {
-        "#TITLE": "title",
-        "#YEAR": "year"
+        "#attr0": "title",
+        "#attr2": "year",
+        "#attr4": "id"
       },
       "ExpressionAttributeValues": {
-        ":title": {
+        ":val1": {
           "S": "title"
         },
-        ":year": {
+        ":val3": {
           "N": "1980"
         }
       },
-      "KeyConditionExpression": "#TITLE = :title AND #YEAR = :year",
-      "ProjectionExpression": "#TITLE"
+      "KeyConditionExpression": "(#attr0 = :val1) AND (#attr2 = :val3)",
+      "ProjectionExpression": "#attr4, #attr0"
     },
     "status": 200,
     "response": {
       "Count": 1,
       "Items": [
         {
+          "id": {
+            "S": "uuid"
+          },
           "title": {
             "S": "title"
           }
