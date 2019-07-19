@@ -16,12 +16,9 @@ class Model {
       ItemNotFound = DefaultItemNotFound,
       ItemExists = DefaultItemExists
     } = {},
-    callback = () => {
-    }
+    callback = () => {}
   }) {
-    class InternalDataMapperClass {
-    }
-
+    class InternalDataMapperClass {}
     Object.defineProperties(InternalDataMapperClass.prototype, {
       [DynamoDbTable]: { value: tableName },
       [DynamoDbSchema]: { value: schema }
@@ -37,7 +34,8 @@ class Model {
     this.callback = callback;
   }
 
-  callbackWrapper({ id, actionType }) {
+  // eslint-disable-next-line no-underscore-dangle
+  _callback(actionType, id) {
     return this.callback({
       id,
       actionType,
@@ -72,7 +70,8 @@ class Model {
       }
       throw err;
     }
-    await this.callbackWrapper({ id, actionType: 'get' });
+    // eslint-disable-next-line no-underscore-dangle
+    await this._callback('get', id);
     return resp;
   }
 
@@ -92,7 +91,8 @@ class Model {
       }
       throw err;
     }
-    await this.callbackWrapper({ id, actionType: 'create' });
+    // eslint-disable-next-line no-underscore-dangle
+    await this._callback('create', id);
     return this.get({ id, fields });
   }
 
@@ -112,7 +112,8 @@ class Model {
       }
       throw err;
     }
-    await this.callbackWrapper({ id, actionType: 'update' });
+    // eslint-disable-next-line no-underscore-dangle
+    await this._callback('update', id);
     return this.get({ id, fields });
   }
 
@@ -133,7 +134,8 @@ class Model {
       }
       throw err;
     }
-    await this.callbackWrapper({ id, actionType: 'delete' });
+    // eslint-disable-next-line no-underscore-dangle
+    await this._callback('delete', id);
   }
 
   async list({ indexName, indexMap, fields }) {
