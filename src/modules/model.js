@@ -1,10 +1,10 @@
 const AWS = require('aws-sdk-wrap');
 const objectFields = require('object-fields');
 const { DataMapper, DynamoDbSchema, DynamoDbTable } = require('@aws/dynamodb-data-mapper');
-const { DefaultEntryNotFoundError, DefaultEntryExistsError } = require('./errors');
+const { DefaultItemNotFoundError, DefaultItemExistsError } = require('./errors');
 
-const DefaultEntryNotFound = ({ id }) => new DefaultEntryNotFoundError(id);
-const DefaultEntryExists = ({ id }) => new DefaultEntryExistsError(id);
+const DefaultItemNotFound = ({ id }) => new DefaultItemNotFoundError(id);
+const DefaultItemExists = ({ id }) => new DefaultItemExistsError(id);
 
 module.exports = ({
   modelName,
@@ -12,8 +12,8 @@ module.exports = ({
   schema,
   awsConfig = {},
   errorMap: {
-    EntryNotFound = DefaultEntryNotFound,
-    EntryExists = DefaultEntryExists
+    ItemNotFound = DefaultItemNotFound,
+    ItemExists = DefaultItemExists
   } = {},
   callback = () => {}
 }) => {
@@ -48,7 +48,7 @@ module.exports = ({
       });
     } catch (err) {
       if (err.name === 'ItemNotFoundException') {
-        throw EntryNotFound({ id });
+        throw ItemNotFound({ id });
       }
       throw err;
     }
@@ -70,7 +70,7 @@ module.exports = ({
         });
       } catch (err) {
         if (err.name === 'ConditionalCheckFailedException') {
-          throw EntryExists({ id });
+          throw ItemExists({ id });
         }
         throw err;
       }
@@ -90,7 +90,7 @@ module.exports = ({
         });
       } catch (err) {
         if (err.code === 'ConditionalCheckFailedException') {
-          throw EntryNotFound({ id });
+          throw ItemNotFound({ id });
         }
         throw err;
       }
@@ -110,7 +110,7 @@ module.exports = ({
         });
       } catch (err) {
         if (err.code === 'ConditionalCheckFailedException') {
-          throw EntryNotFound({ id });
+          throw ItemNotFound({ id });
         }
         throw err;
       }

@@ -2,23 +2,23 @@ const path = require('path');
 const expect = require('chai').expect;
 const nockBack = require('nock').back;
 const DynamoModel = require('../../src/modules/model');
-const { DefaultEntryExistsError, DefaultEntryNotFoundError } = require('../../src/modules/errors');
+const { DefaultItemExistsError, DefaultItemNotFoundError } = require('../../src/modules/errors');
 
 
-class CustomEntryExistsError extends Error {
+class CustomItemExistsError extends Error {
   constructor(id) {
-    super(`Entry exists: ${id}`);
+    super(`Item exists: ${id}`);
   }
 }
 
-class CustomEntryNotFoundError extends Error {
+class CustomItemNotFoundError extends Error {
   constructor(id) {
-    super(`Entry not found: ${id}`);
+    super(`Item not found: ${id}`);
   }
 }
 
-const CustomEntryExists = ({ id }) => new CustomEntryExistsError(id);
-const CustomEntryNotFound = ({ id }) => new CustomEntryNotFoundError(id);
+const CustomItemExists = ({ id }) => new CustomItemExistsError(id);
+const CustomItemNotFound = ({ id }) => new CustomItemNotFoundError(id);
 
 const schema = {
   id: {
@@ -56,8 +56,8 @@ describe('Dynamo Sdk Tests', () => {
     schema,
     awsConfig,
     errorMap: {
-      EntryExists: CustomEntryExists,
-      EntryNotFound: CustomEntryNotFound
+      ItemExists: CustomItemExists,
+      ItemNotFound: CustomItemNotFound
     }
   });
 
@@ -108,24 +108,24 @@ describe('Dynamo Sdk Tests', () => {
       await nockDone();
     });
 
-    it('Testing Get EntryNotFound Custom', async () => {
+    it('Testing Get ItemNotFound Custom', async () => {
       const nockDone = await new Promise(resolve => nockBack('model/getNotFoundCustom.json', {}, resolve));
       try {
         await customErrorModel.get({ id: 'uuid', fields: 'keywords' });
       } catch (err) {
-        expect(err).instanceof(CustomEntryNotFoundError);
-        expect(err.message).to.equal('Entry not found: uuid');
+        expect(err).instanceof(CustomItemNotFoundError);
+        expect(err.message).to.equal('Item not found: uuid');
         await nockDone();
       }
     });
 
-    it('Testing Get EntryNotFound Default', async () => {
+    it('Testing Get ItemNotFound Default', async () => {
       const nockDone = await new Promise(resolve => nockBack('model/getNotFoundDefault.json', {}, resolve));
       try {
         await defaultModel.get({ id: 'uuid', fields: 'keywords' });
       } catch (err) {
-        expect(err).instanceof(DefaultEntryNotFoundError);
-        expect(err.message).to.equal('Entry not found.');
+        expect(err).instanceof(DefaultItemNotFoundError);
+        expect(err.message).to.equal('Item not found.');
         checkCallbackLog([]);
         await nockDone();
       }
@@ -156,8 +156,8 @@ describe('Dynamo Sdk Tests', () => {
       await nockDone();
     });
 
-    it('Testing Create Entry Exists Custom', async () => {
-      const nockDone = await new Promise(resolve => nockBack('model/createEntryExistsCustom.json', {}, resolve));
+    it('Testing Create Item Exists Custom', async () => {
+      const nockDone = await new Promise(resolve => nockBack('model/createItemExistsCustom.json', {}, resolve));
       try {
         await customErrorModel.create({
           id: 'uuid',
@@ -165,14 +165,14 @@ describe('Dynamo Sdk Tests', () => {
           fields: 'keywords'
         });
       } catch (err) {
-        expect(err).instanceof(CustomEntryExistsError);
-        expect(err.message).to.equal('Entry exists: uuid');
+        expect(err).instanceof(CustomItemExistsError);
+        expect(err.message).to.equal('Item exists: uuid');
         await nockDone();
       }
     });
 
-    it('Testing Create Entry Exists Default', async () => {
-      const nockDone = await new Promise(resolve => nockBack('model/createEntryExistsDefault.json', {}, resolve));
+    it('Testing Create Item Exists Default', async () => {
+      const nockDone = await new Promise(resolve => nockBack('model/createItemExistsDefault.json', {}, resolve));
       try {
         await defaultModel.create({
           id: 'uuid',
@@ -180,8 +180,8 @@ describe('Dynamo Sdk Tests', () => {
           fields: 'keywords'
         });
       } catch (err) {
-        expect(err).instanceof(DefaultEntryExistsError);
-        expect(err.message).to.equal('Entry exists.');
+        expect(err).instanceof(DefaultItemExistsError);
+        expect(err.message).to.equal('Item exists.');
         checkCallbackLog([]);
         await nockDone();
       }
@@ -225,7 +225,7 @@ describe('Dynamo Sdk Tests', () => {
           fields: 'keywords'
         });
       } catch (err) {
-        expect(err).instanceof(DefaultEntryNotFoundError);
+        expect(err).instanceof(DefaultItemNotFoundError);
         checkCallbackLog([]);
         await nockDone();
       }
@@ -260,7 +260,7 @@ describe('Dynamo Sdk Tests', () => {
       try {
         await defaultModel.delete({ id: 'uuid' });
       } catch (err) {
-        expect(err).instanceof(DefaultEntryNotFoundError);
+        expect(err).instanceof(DefaultItemNotFoundError);
         checkCallbackLog([]);
         await nockDone();
       }

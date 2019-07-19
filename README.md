@@ -32,8 +32,8 @@ const model = Model({
   tableName: 'dynamo-table-name',
   awsConfig: {},
   errorMap: {
-    EntryNotFound: ({ id }) => { /* ... */ },
-    EntryExists: ({ id }) => { /* ... */ }
+    ItemNotFound: ({ id }) => { /* ... */ },
+    ItemExists: ({ id }) => { /* ... */ }
   },
   callback: (/* {
     id, modelName, tableName, actionType
