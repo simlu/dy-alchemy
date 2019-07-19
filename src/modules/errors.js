@@ -1,13 +1,13 @@
-class DefaultEntryNotFoundError extends Error {
+class DefaultItemNotFoundError extends Error {
   constructor() {
-    super('Entry not found.');
+    super('Item not found.');
   }
 }
-module.exports.DefaultEntryNotFoundError = DefaultEntryNotFoundError;
+module.exports.DefaultItemNotFoundError = DefaultItemNotFoundError;
 
-class DefaultEntryExistsError extends Error {
+class DefaultItemExists extends Error {
   constructor() {
-    super('Entry exists.');
+    super('Item exists.');
   }
 }
-module.exports.DefaultEntryExistsError = DefaultEntryExistsError;
+module.exports.DefaultItemExistsError = DefaultItemExists;
