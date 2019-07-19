@@ -18,20 +18,36 @@ class Model {
     } = {},
     callback = () => {}
   }) {
-    class InternalDataMapperClass {}
-    Object.defineProperties(InternalDataMapperClass.prototype, {
+    class MapperClass {
+      constructor(kwargs) {
+        Object.assign(this, kwargs);
+      }
+    }
+    Object.defineProperties(MapperClass.prototype, {
       [DynamoDbTable]: { value: tableName },
       [DynamoDbSchema]: { value: schema }
     });
     const aws = AWS({ config: awsConfig });
-    const mapper = new DataMapper({ client: aws.get('dynamodb') });
-    this.mapper = mapper;
+    this.mapper = new DataMapper({ client: aws.get('dynamodb') });
     this.modelName = modelName;
     this.tableName = tableName;
-    this.InternalDataMapperClass = InternalDataMapperClass;
+    this.MapperClass = MapperClass;
     this.ItemNotFound = ItemNotFound;
     this.ItemExists = ItemExists;
     this.callback = callback;
+  }
+
+  // eslint-disable-next-line no-underscore-dangle
+  _before() {
+    Object.entries({
+      modelName: this.modelName,
+      tableName: this.tableName
+    })
+      .forEach(([key, value]) => {
+        if (typeof value !== 'string' || value === '') {
+          throw new Error(`Missing required value: ${key}`);
+        }
+      });
   }
 
   // eslint-disable-next-line no-underscore-dangle
@@ -44,23 +60,12 @@ class Model {
     });
   }
 
-  precheck() {
-    Object.entries({
-      modelName: this.modelName,
-      tableName: this.tableName
-    })
-      .forEach(([key, value]) => {
-        if (typeof value !== 'string' || value === '') {
-          throw new Error(`Missing required value: ${key}`);
-        }
-      });
-  }
-
   async get({ id, fields }) {
-    this.precheck();
+    // eslint-disable-next-line no-underscore-dangle
+    this._before();
     let resp;
     try {
-      resp = await this.mapper.get(Object.assign(new this.InternalDataMapperClass(), { id }), {
+      resp = await this.mapper.get(new this.MapperClass({ id }), {
         projection: objectFields.split(fields),
         readConsistency: 'strong'
       });
@@ -76,9 +81,10 @@ class Model {
   }
 
   async create({ id, data, fields }) {
-    this.precheck();
+    // eslint-disable-next-line no-underscore-dangle
+    this._before();
     try {
-      await this.mapper.put(Object.assign(new this.InternalDataMapperClass(), data, { id }), {
+      await this.mapper.put(new this.MapperClass({ ...data, id }), {
         condition: {
           subject: 'id',
           type: 'NotEquals',
@@ -97,8 +103,10 @@ class Model {
   }
 
   async update({ id, data, fields }) {
+    // eslint-disable-next-line no-underscore-dangle
+    this._before();
     try {
-      await this.mapper.update(Object.assign(new this.InternalDataMapperClass(), data, { id }), {
+      await this.mapper.update(new this.MapperClass({ ...data, id }), {
         condition: {
           subject: 'id',
           type: 'Equals',
@@ -118,9 +126,10 @@ class Model {
   }
 
   async delete({ id }) {
-    this.precheck();
+    // eslint-disable-next-line no-underscore-dangle
+    this._before();
     try {
-      await this.mapper.delete(Object.assign(new this.InternalDataMapperClass(), { id }), {
+      await this.mapper.delete(new this.MapperClass({ id }), {
         condition: {
           subject: 'id',
           type: 'Equals',
@@ -139,8 +148,9 @@ class Model {
   }
 
   async list({ indexName, indexMap, fields }) {
-    this.precheck();
-    const iterator = this.mapper.query(this.InternalDataMapperClass, indexMap, {
+    // eslint-disable-next-line no-underscore-dangle
+    this._before();
+    const iterator = this.mapper.query(this.MapperClass, indexMap, {
       indexName,
       projection: objectFields.split(fields)
     });
@@ -148,6 +158,8 @@ class Model {
     // eslint-disable-next-line no-restricted-syntax
     for await (const r of iterator) {
       resp.push(r);
+      // eslint-disable-next-line no-underscore-dangle
+      await this._callback('list', r.id);
     }
     return resp;
   }
