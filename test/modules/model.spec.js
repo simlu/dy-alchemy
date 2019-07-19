@@ -41,7 +41,7 @@ const awsConfig = {
 };
 describe('Dynamo Sdk Tests', () => {
   let callbackLog = [];
-  const defaultModel = DynamoModel({
+  const defaultModel = new DynamoModel({
     modelName: 'default',
     tableName: 'dy-alchemy-table',
     schema,
@@ -50,7 +50,7 @@ describe('Dynamo Sdk Tests', () => {
       callbackLog.push(args);
     }
   });
-  const customErrorModel = DynamoModel({
+  const customErrorModel = new DynamoModel({
     modelName: 'customErrorMap',
     tableName: 'dy-alchemy-table',
     schema,
@@ -71,11 +71,12 @@ describe('Dynamo Sdk Tests', () => {
   });
 
   it('Init With Defaults', () => {
-    DynamoModel({ modelName: '', tableName: '' });
+    // eslint-disable-next-line no-new
+    new DynamoModel({ modelName: '', tableName: '' });
   });
 
   it('Testing precheck', async () => {
-    const model = DynamoModel({ modelName: 'model', awsConfig });
+    const model = new DynamoModel({ modelName: 'model', awsConfig });
     try {
       await model.get({ id: 'uuid', fields: 'keywords' });
     } catch (err) {
