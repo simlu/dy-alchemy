@@ -285,9 +285,10 @@ describe('Dynamo Sdk Tests', () => {
       const modelList = await defaultModel.list({
         indexName: 'index-name',
         indexMap: { title: 'title', year: 1980 },
-        fields: 'title'
+        fields: 'id,title'
       });
-      expect(modelList).to.deep.equal([{ title: 'title' }]);
+      expect(modelList).to.deep.equal([{ id: 'uuid', title: 'title' }]);
+      checkCallbackLog(['list']);
       await nockDone();
     }).timeout(50000);
   });

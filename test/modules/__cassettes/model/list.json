@@ -8,7 +8,8 @@
       "IndexName": "index-name",
       "ExpressionAttributeNames": {
         "#attr0": "title",
-        "#attr2": "year"
+        "#attr2": "year",
+        "#attr4": "id"
       },
       "ExpressionAttributeValues": {
         ":val1": {
@@ -19,13 +20,16 @@
         }
       },
       "KeyConditionExpression": "(#attr0 = :val1) AND (#attr2 = :val3)",
-      "ProjectionExpression": "#attr0"
+      "ProjectionExpression": "#attr4, #attr0"
     },
     "status": 200,
     "response": {
       "Count": 1,
       "Items": [
         {
+          "id": {
+            "S": "uuid"
+          },
           "title": {
             "S": "title"
           }
