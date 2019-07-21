@@ -16,13 +16,13 @@
     "@babel/plugin-proposal-object-rest-spread": "7.5.5",
     "@babel/register": "7.5.5",
     "@blackflux/eslint-plugin-rules": "1.0.23",
-    "@blackflux/robo-config-plugin": "2.0.1",
+    "@blackflux/robo-config-plugin": "2.1.3",
     "aws-sdk": "2.496.0",
     "babel-eslint": "10.0.2",
     "chai": "4.2.0",
     "coveralls": "3.0.5",
-    "eslint": "6.0.1",
-    "js-gardener": "2.0.51",
+    "eslint": "6.1.0",
+    "js-gardener": "2.0.52",
     "nock": "10.0.6",
     "nyc": "14.1.1",
     "semantic-release": "15.13.18",
@@ -36,14 +36,15 @@
     "test": "npm run clean && npm run gardener && npm run test-simple",
     "coveralls": "node ./node_modules/coveralls/bin/coveralls.js < ./coverage/lcov.info",
     "semantic-release": "npm run build-clean && npx semantic-release",
-    "gardener": "node gardener"
+    "gardener": "node gardener",
+    "docker": "docker run -u`id -u`:`id -g` -v $(pwd):/user/project -v ~/.aws:/user/.aws -v ~/.npmrc:/user/.npmrc -w /user/project -it --entrypoint /bin/bash",
+    "yu": "yarn upgrade --latest --force",
+    "yi": "yarn install --frozen-lockfile",
+    "t": "yarn test",
+    "ts": "yarn run test-simple",
+    "tsv": "yarn run test-simple --verbose"
   },
-  "keywords": [
-    "dynamodb",
-    "orm",
-    "lock",
-    "validation"
-  ],
+  "keywords": ["dynamodb", "orm", "lock", "validation"],
   "author": "Lukas Siemon",
   "license": "MIT",
   "nyc": {
@@ -55,26 +56,14 @@
     "statements": 100,
     "functions": 100,
     "branches": 100,
-    "include": [
-      "**/*.js"
-    ],
-    "reporter": [
-      "lcov",
-      "text-summary"
-    ],
-    "require": [
-      "@babel/register"
-    ],
+    "include": ["**/*.js"],
+    "reporter": ["lcov", "text-summary"],
+    "require": ["@babel/register"],
     "extension": [],
     "cache": true,
     "all": true,
     "babel": true,
-    "exclude": [
-      "gardener.js",
-      "node_modules/*",
-      "coverage/*",
-      "lib/*"
-    ]
+    "exclude": ["gardener.js", "node_modules/*", "coverage/*", "lib/*"]
   },
   "licenses": [
     {
@@ -83,20 +72,12 @@
     }
   ],
   "homepage": "https://github.com/blackflux/dy-alchemy#readme",
-  "engines": {
-    "node": ">= 8.10"
-  },
+  "engines": {"node": ">= 8.10"},
   "repository": {
     "type": "git",
     "url": "https://github.com/blackflux/dy-alchemy.git"
   },
-  "bugs": {
-    "url": "https://github.com/blackflux/dy-alchemy/issues"
-  },
-  "files": [
-    "lib"
-  ],
-  "peerDependencies": {
-    "aws-sdk": "^2.315.0"
-  }
+  "bugs": {"url": "https://github.com/blackflux/dy-alchemy/issues"},
+  "files": ["lib"],
+  "peerDependencies": {"aws-sdk": "^2.315.0"}
 }
