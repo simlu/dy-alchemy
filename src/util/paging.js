@@ -19,9 +19,7 @@ const toCursor = ({
 module.exports.toCursor = toCursor;
 
 module.exports.buildPageObject = (currentPage, limit, lastEvaluatedKey) => {
-  const next = lastEvaluatedKey === null ? null : {
-    limit
-  };
+  const next = lastEvaluatedKey === null ? null : { limit };
   if (next !== null) {
     next.cursor = toCursor({
       scanIndexForward: true,
@@ -30,9 +28,7 @@ module.exports.buildPageObject = (currentPage, limit, lastEvaluatedKey) => {
       ...next
     });
   }
-  const previous = currentPage === 1 ? null : {
-    limit
-  };
+  const previous = currentPage === 1 ? null : { limit };
   if (previous !== null) {
     previous.cursor = toCursor({
       scanIndexForward: false,
