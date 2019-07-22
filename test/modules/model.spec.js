@@ -317,7 +317,6 @@ describe('Dynamo Sdk Tests', () => {
         payload: [{ id: 'uuid', title: 'title' }],
         page: {
           next: null,
-          previous: null,
           index: { current: 1 },
           size: 20
         }
@@ -337,7 +336,6 @@ describe('Dynamo Sdk Tests', () => {
         payload: [{ title: 'title' }],
         page: {
           next: null,
-          previous: null,
           index: { current: 1 },
           size: 20
         }
@@ -361,16 +359,31 @@ describe('Dynamo Sdk Tests', () => {
         page: {
           next: {
             limit: 1,
-            cursor: 'eyJsYXN0RXZhbHVhdGVkS2V5Ijp7ImlkIjoidXVpZCIsInRpdGxlIjoidGl0'
-              + 'bGUiLCJ5ZWFyIjoxOTgwfSwic2NhbkluZGV4Rm9yd2FyZCI6dHJ1ZSwibGltaXQiOjEsImN1cnJlbnRQYWdlIjozfQ=='
-          },
-          previous: {
-            limit: 1,
-            cursor: 'eyJsYXN0RXZhbHVhdGVkS2V5Ijp7ImlkIjoidXVpZCIsInRpdGxlIjoidGl0bGUiLCJ5ZW'
-              + 'FyIjoxOTgwfSwic2NhbkluZGV4Rm9yd2FyZCI6ZmFsc2UsImxpbWl0IjoxLCJjdXJyZW50UGFnZSI6MX0='
+            cursor: 'eyJsYXN0RXZhbHVhdGVkS2V5Ijp7ImlkIjoidXVpZCIsInRpdGxlIjoidGl0bGUiLCJ5ZWFyIjoxOTgwfSwi'
+              + 'c2NhbkluZGV4Rm9yd2FyZCI6dHJ1ZSwiY3VycmVudFBhZ2UiOjMsImxpbWl0IjoxfQ=='
           },
           index: { current: 2 },
           size: 1
+        }
+      });
+      checkCallbackLog(['list']);
+      await nockDone();
+    });
+
+    it('Testing List with Invalid Cursor', async () => {
+      const nockDone = await new Promise(resolve => nockBack('model/listInvalidCursor.json', {}, resolve));
+      const result = await defaultModel.list({
+        indexName: 'index-name',
+        indexMap: { title: 'title', year: 1980 },
+        fields: 'id,title',
+        cursor: '--invalid--'
+      });
+      expect(result).to.deep.equal({
+        payload: [{ id: 'uuid', title: 'title' }],
+        page: {
+          next: null,
+          index: { current: 1 },
+          size: 20
         }
       });
       checkCallbackLog(['list']);

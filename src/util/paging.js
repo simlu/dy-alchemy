@@ -1,11 +1,21 @@
+const assert = require('assert');
+
 const objectEncode = obj => Buffer.from(JSON.stringify(obj)).toString('base64');
 
 const objectDecode = base64 => JSON.parse(Buffer.from(base64, 'base64').toString('utf8'));
 
 module.exports.fromCursor = (cursor) => {
+  let cursorPayload = {};
+  if (cursor !== null) {
+    try {
+      cursorPayload = objectDecode(cursor);
+    } catch (err) {
+      assert(err.name === 'SyntaxError' && err.message.startsWith('Unexpected token'), err);
+    }
+  }
   const {
     lastEvaluatedKey, scanIndexForward, currentPage, limit
-  } = cursor === null ? {} : objectDecode(cursor);
+  } = cursorPayload;
   return {
     lastEvaluatedKey, scanIndexForward, currentPage, limit
   };
@@ -28,18 +38,8 @@ module.exports.buildPageObject = (currentPage, limit, lastEvaluatedKey) => {
       ...next
     });
   }
-  const previous = currentPage === 1 ? null : { limit };
-  if (previous !== null) {
-    previous.cursor = toCursor({
-      lastEvaluatedKey,
-      scanIndexForward: false,
-      currentPage: currentPage - 1,
-      ...previous
-    });
-  }
   return {
     next,
-    previous,
     index: { current: currentPage },
     size: limit
   };
