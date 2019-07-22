@@ -177,11 +177,11 @@ class Model {
       currentPage = null
     } = fromCursor(cursor);
     const iterator = this.mapper.query(this.MapperClass, indexMap, {
+      indexName,
+      projection: splitFields,
       startKey: lastEvaluatedKey,
       scanIndexForward,
-      indexName,
-      limit: queryLimit,
-      projection: splitFields
+      limit: queryLimit
     });
     const payload = [];
     // eslint-disable-next-line no-restricted-syntax
