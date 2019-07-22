@@ -4,17 +4,17 @@ const objectDecode = base64 => JSON.parse(Buffer.from(base64, 'base64').toString
 
 module.exports.fromCursor = (cursor) => {
   const {
-    lastEvaluatedKey, limit, scanIndexForward, currentPage
+    lastEvaluatedKey, scanIndexForward, currentPage, limit
   } = cursor === null ? {} : objectDecode(cursor);
   return {
-    lastEvaluatedKey, limit, scanIndexForward, currentPage
+    lastEvaluatedKey, scanIndexForward, currentPage, limit
   };
 };
 
 const toCursor = ({
-  lastEvaluatedKey, scanIndexForward, limit, currentPage
+  lastEvaluatedKey, scanIndexForward, currentPage, limit
 }) => objectEncode({
-  lastEvaluatedKey, scanIndexForward, limit, currentPage
+  lastEvaluatedKey, scanIndexForward, currentPage, limit
 });
 module.exports.toCursor = toCursor;
 
@@ -22,8 +22,8 @@ module.exports.buildPageObject = (currentPage, limit, lastEvaluatedKey) => {
   const next = lastEvaluatedKey === null ? null : { limit };
   if (next !== null) {
     next.cursor = toCursor({
-      scanIndexForward: true,
       lastEvaluatedKey,
+      scanIndexForward: true,
       currentPage: currentPage + 1,
       ...next
     });
@@ -31,8 +31,8 @@ module.exports.buildPageObject = (currentPage, limit, lastEvaluatedKey) => {
   const previous = currentPage === 1 ? null : { limit };
   if (previous !== null) {
     previous.cursor = toCursor({
-      scanIndexForward: false,
       lastEvaluatedKey,
+      scanIndexForward: false,
       currentPage: currentPage - 1,
       ...previous
     });
