@@ -28,6 +28,9 @@ const schema = {
   title: {
     type: 'String'
   },
+  year: {
+    type: 'Number'
+  },
   keywords: {
     type: 'List',
     memberType: { type: 'String' }
@@ -217,6 +220,19 @@ describe('Dynamo Sdk Tests', () => {
       await nockDone();
     });
 
+    it('Testing Update with Condition', async () => {
+      const nockDone = await new Promise(resolve => nockBack('model/updateWithCondition.json', {}, resolve));
+      const result = await defaultModel.update({
+        id: 'uuid',
+        data: { keywords: ['keyword1'] },
+        fields: 'keywords',
+        conditions: [{ subject: 'title', type: 'Equals', object: 'title-name' }]
+      });
+      expect(result).to.deep.equal({ keywords: ['keyword1'] });
+      checkCallbackLog(['update', 'get']);
+      await nockDone();
+    });
+
     it('Testing Update Not Found', async () => {
       const nockDone = await new Promise(resolve => nockBack('model/updateNotFound.json', {}, resolve));
       try {
@@ -256,6 +272,16 @@ describe('Dynamo Sdk Tests', () => {
       await nockDone();
     });
 
+    it('Testing Delete with Condition', async () => {
+      const nockDone = await new Promise(resolve => nockBack('model/deleteWithCondition.json', {}, resolve));
+      await defaultModel.delete({
+        id: 'uuid',
+        conditions: [{ subject: 'title', type: 'Equals', object: 'title-name' }]
+      });
+      checkCallbackLog(['delete']);
+      await nockDone();
+    });
+
     it('Testing Delete Not Found', async () => {
       const nockDone = await new Promise(resolve => nockBack('model/deleteNotFound.json', {}, resolve));
       try {
@@ -282,14 +308,73 @@ describe('Dynamo Sdk Tests', () => {
   describe('Testing List', () => {
     it('Testing List', async () => {
       const nockDone = await new Promise(resolve => nockBack('model/list.json', {}, resolve));
-      const modelList = await defaultModel.list({
+      const result = await defaultModel.list({
         indexName: 'index-name',
         indexMap: { title: 'title', year: 1980 },
         fields: 'id,title'
       });
-      expect(modelList).to.deep.equal([{ id: 'uuid', title: 'title' }]);
+      expect(result).to.deep.equal({
+        payload: [{ id: 'uuid', title: 'title' }],
+        page: {
+          next: null,
+          previous: null,
+          index: { current: 1 },
+          size: 20
+        }
+      });
       checkCallbackLog(['list']);
       await nockDone();
-    }).timeout(50000);
+    });
+
+    it('Testing List without Id', async () => {
+      const nockDone = await new Promise(resolve => nockBack('model/listWithoutId.json', {}, resolve));
+      const result = await defaultModel.list({
+        indexName: 'index-name',
+        indexMap: { title: 'title', year: 1980 },
+        fields: 'title'
+      });
+      expect(result).to.deep.equal({
+        payload: [{ title: 'title' }],
+        page: {
+          next: null,
+          previous: null,
+          index: { current: 1 },
+          size: 20
+        }
+      });
+      checkCallbackLog(['list']);
+      await nockDone();
+    });
+
+    it('Testing List with Paging', async () => {
+      const nockDone = await new Promise(resolve => nockBack('model/listWithPaging.json', {}, resolve));
+      const result = await defaultModel.list({
+        indexName: 'index-name',
+        indexMap: { title: 'title', year: 1980 },
+        fields: 'id,title',
+        limit: 1,
+        cursor: 'eyJsYXN0RXZhbHVhdGVkS2V5Ijp7ImlkIjoidXVpZCIsInRpdGxlIjoidGl0bGUiLCJ5ZWFyIjoxOTgwfSwic2'
+          + 'NhbkluZGV4Rm9yd2FyZCI6dHJ1ZSwibGltaXQiOjEsImN1cnJlbnRQYWdlIjoyfQ=='
+      });
+      expect(result).to.deep.equal({
+        payload: [{ id: 'uuid', title: 'title' }],
+        page: {
+          next: {
+            limit: 1,
+            cursor: 'eyJsYXN0RXZhbHVhdGVkS2V5Ijp7ImlkIjoidXVpZCIsInRpdGxlIjoidGl0'
+              + 'bGUiLCJ5ZWFyIjoxOTgwfSwic2NhbkluZGV4Rm9yd2FyZCI6dHJ1ZSwibGltaXQiOjEsImN1cnJlbnRQYWdlIjozfQ=='
+          },
+          previous: {
+            limit: 1,
+            cursor: 'eyJsYXN0RXZhbHVhdGVkS2V5Ijp7ImlkIjoidXVpZCIsInRpdGxlIjoidGl0bGUiLCJ5ZW'
+              + 'FyIjoxOTgwfSwic2NhbkluZGV4Rm9yd2FyZCI6ZmFsc2UsImxpbWl0IjoxLCJjdXJyZW50UGFnZSI6MX0='
+          },
+          index: { current: 2 },
+          size: 1
+        }
+      });
+      checkCallbackLog(['list']);
+      await nockDone();
+    });
   });
 });
