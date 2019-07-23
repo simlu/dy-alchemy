@@ -2,7 +2,7 @@ const path = require('path');
 const expect = require('chai').expect;
 const nockBack = require('nock').back;
 const DynamoModel = require('../../src/modules/model');
-const { DefaultItemExistsError, DefaultItemNotFoundError } = require('../../src/modules/errors');
+const { DefaultItemExistsError, DefaultItemNotFoundError, InvalidPageCursor } = require('../../src/modules/errors');
 
 
 class CustomItemExistsError extends Error {
@@ -27,6 +27,9 @@ const schema = {
   },
   title: {
     type: 'String'
+  },
+  year: {
+    type: 'Number'
   },
   keywords: {
     type: 'List',
@@ -78,7 +81,7 @@ describe('Dynamo Sdk Tests', () => {
   it('Testing precheck', async () => {
     const model = new DynamoModel({ modelName: 'model', awsConfig });
     try {
-      await model.get({ id: 'uuid', fields: 'keywords' });
+      await model.get({ id: 'uuid', fields: ['keywords'] });
     } catch (err) {
       expect(err.message).to.equal('Missing required value: tableName');
     }
@@ -94,9 +97,9 @@ describe('Dynamo Sdk Tests', () => {
   };
 
   describe('Testing Get', () => {
-    it('Testing Get', async () => {
+    it('Testing Get Base Case', async () => {
       const nockDone = await new Promise(resolve => nockBack('model/get.json', {}, resolve));
-      expect(await defaultModel.get({ id: 'uuid', fields: 'keywords' }))
+      expect(await defaultModel.get({ id: 'uuid', fields: ['keywords'] }))
         .to.deep.equal({ keywords: ['keyword1', 'keyword2'] });
       checkCallbackLog(['get']);
       await nockDone();
@@ -104,7 +107,7 @@ describe('Dynamo Sdk Tests', () => {
 
     it('Testing Get Custom Error Sdk (default callback coverage)', async () => {
       const nockDone = await new Promise(resolve => nockBack('model/get.json', {}, resolve));
-      const result = await customErrorModel.get({ id: 'uuid', fields: 'keywords' });
+      const result = await customErrorModel.get({ id: 'uuid', fields: ['keywords'] });
       expect(result).to.deep.equal({ keywords: ['keyword1', 'keyword2'] });
       await nockDone();
     });
@@ -112,7 +115,7 @@ describe('Dynamo Sdk Tests', () => {
     it('Testing Get ItemNotFound Custom', async () => {
       const nockDone = await new Promise(resolve => nockBack('model/getNotFoundCustom.json', {}, resolve));
       try {
-        await customErrorModel.get({ id: 'uuid', fields: 'keywords' });
+        await customErrorModel.get({ id: 'uuid', fields: ['keywords'] });
       } catch (err) {
         expect(err).instanceof(CustomItemNotFoundError);
         expect(err.message).to.equal('Item not found: uuid');
@@ -123,7 +126,7 @@ describe('Dynamo Sdk Tests', () => {
     it('Testing Get ItemNotFound Default', async () => {
       const nockDone = await new Promise(resolve => nockBack('model/getNotFoundDefault.json', {}, resolve));
       try {
-        await defaultModel.get({ id: 'uuid', fields: 'keywords' });
+        await defaultModel.get({ id: 'uuid', fields: ['keywords'] });
       } catch (err) {
         expect(err).instanceof(DefaultItemNotFoundError);
         expect(err.message).to.equal('Item not found.');
@@ -135,7 +138,7 @@ describe('Dynamo Sdk Tests', () => {
     it('Testing Get Error', async () => {
       const nockDone = await new Promise(resolve => nockBack('model/getError.json', {}, resolve));
       try {
-        await defaultModel.get({ id: 'uuid', fields: 'keywords' });
+        await defaultModel.get({ id: 'uuid', fields: ['keywords'] });
       } catch (err) {
         expect(err.code).to.equal('UnknownError');
         checkCallbackLog([]);
@@ -145,12 +148,12 @@ describe('Dynamo Sdk Tests', () => {
   });
 
   describe('Testing Create', () => {
-    it('Testing Create', async () => {
+    it('Testing Create Base Case', async () => {
       const nockDone = await new Promise(resolve => nockBack('model/create.json', {}, resolve));
       const result = await defaultModel.create({
         id: 'uuid',
         data: { keywords: ['keyword1', 'keyword2'] },
-        fields: 'keywords'
+        fields: ['keywords']
       });
       expect(result).to.deep.equal({ keywords: ['keyword1', 'keyword2'] });
       checkCallbackLog(['create', 'get']);
@@ -163,7 +166,7 @@ describe('Dynamo Sdk Tests', () => {
         await customErrorModel.create({
           id: 'uuid',
           data: { keywords: ['keyword1', 'keyword2'] },
-          fields: 'keywords'
+          fields: ['keywords']
         });
       } catch (err) {
         expect(err).instanceof(CustomItemExistsError);
@@ -178,7 +181,7 @@ describe('Dynamo Sdk Tests', () => {
         await defaultModel.create({
           id: 'uuid',
           data: { keywords: ['keyword1', 'keyword2'] },
-          fields: 'keywords'
+          fields: ['keywords']
         });
       } catch (err) {
         expect(err).instanceof(DefaultItemExistsError);
@@ -194,7 +197,7 @@ describe('Dynamo Sdk Tests', () => {
         await defaultModel.create({
           id: 'uuid',
           data: { keywords: ['keyword1', 'keyword2'] },
-          fields: 'keywords'
+          fields: ['keywords']
         });
       } catch (err) {
         expect(err.code).to.equal('UnknownError');
@@ -205,12 +208,25 @@ describe('Dynamo Sdk Tests', () => {
   });
 
   describe('Testing Update', () => {
-    it('Testing Update', async () => {
+    it('Testing Update Base Case', async () => {
       const nockDone = await new Promise(resolve => nockBack('model/update.json', {}, resolve));
       const result = await defaultModel.update({
         id: 'uuid',
         data: { keywords: ['keyword1'] },
-        fields: 'keywords'
+        fields: ['keywords']
+      });
+      expect(result).to.deep.equal({ keywords: ['keyword1'] });
+      checkCallbackLog(['update', 'get']);
+      await nockDone();
+    });
+
+    it('Testing Update with Condition', async () => {
+      const nockDone = await new Promise(resolve => nockBack('model/updateWithCondition.json', {}, resolve));
+      const result = await defaultModel.update({
+        id: 'uuid',
+        data: { keywords: ['keyword1'] },
+        fields: ['keywords'],
+        conditions: [{ subject: 'title', type: 'Equals', object: 'title-name' }]
       });
       expect(result).to.deep.equal({ keywords: ['keyword1'] });
       checkCallbackLog(['update', 'get']);
@@ -223,7 +239,7 @@ describe('Dynamo Sdk Tests', () => {
         await defaultModel.update({
           id: 'uuid',
           data: { keywords: ['keyword1'] },
-          fields: 'keywords'
+          fields: ['keywords']
         });
       } catch (err) {
         expect(err).instanceof(DefaultItemNotFoundError);
@@ -238,7 +254,7 @@ describe('Dynamo Sdk Tests', () => {
         await defaultModel.update({
           id: 'uuid',
           data: { keywords: ['keyword1'] },
-          fields: 'keywords'
+          fields: ['keywords']
         });
       } catch (err) {
         expect(err.code).to.equal('UnknownError');
@@ -249,9 +265,19 @@ describe('Dynamo Sdk Tests', () => {
   });
 
   describe('Testing Delete', () => {
-    it('Testing Delete', async () => {
+    it('Testing Delete Base Case', async () => {
       const nockDone = await new Promise(resolve => nockBack('model/delete.json', {}, resolve));
       await defaultModel.delete({ id: 'uuid' });
+      checkCallbackLog(['delete']);
+      await nockDone();
+    });
+
+    it('Testing Delete with Condition', async () => {
+      const nockDone = await new Promise(resolve => nockBack('model/deleteWithCondition.json', {}, resolve));
+      await defaultModel.delete({
+        id: 'uuid',
+        conditions: [{ subject: 'title', type: 'Equals', object: 'title-name' }]
+      });
       checkCallbackLog(['delete']);
       await nockDone();
     });
@@ -280,16 +306,84 @@ describe('Dynamo Sdk Tests', () => {
   });
 
   describe('Testing List', () => {
-    it('Testing List', async () => {
+    it('Testing List Base Case', async () => {
       const nockDone = await new Promise(resolve => nockBack('model/list.json', {}, resolve));
-      const modelList = await defaultModel.list({
+      const result = await defaultModel.list({
         indexName: 'index-name',
         indexMap: { title: 'title', year: 1980 },
-        fields: 'id,title'
+        fields: ['id', 'title']
       });
-      expect(modelList).to.deep.equal([{ id: 'uuid', title: 'title' }]);
+      expect(result).to.deep.equal({
+        payload: [{ id: 'uuid', title: 'title' }],
+        page: {
+          next: null,
+          index: { current: 1 },
+          size: 20
+        }
+      });
       checkCallbackLog(['list']);
       await nockDone();
-    }).timeout(50000);
+    });
+
+    it('Testing List without Id', async () => {
+      const nockDone = await new Promise(resolve => nockBack('model/listWithoutId.json', {}, resolve));
+      const result = await defaultModel.list({
+        indexName: 'index-name',
+        indexMap: { title: 'title', year: 1980 },
+        fields: ['title']
+      });
+      expect(result).to.deep.equal({
+        payload: [{ title: 'title' }],
+        page: {
+          next: null,
+          index: { current: 1 },
+          size: 20
+        }
+      });
+      checkCallbackLog(['list']);
+      await nockDone();
+    });
+
+    it('Testing List with Paging', async () => {
+      const nockDone = await new Promise(resolve => nockBack('model/listWithPaging.json', {}, resolve));
+      const result = await defaultModel.list({
+        indexName: 'index-name',
+        indexMap: { title: 'title', year: 1980 },
+        fields: ['id', 'title'],
+        limit: 1,
+        cursor: 'eyJsYXN0RXZhbHVhdGVkS2V5Ijp7ImlkIjoidXVpZCIsInRpdGxlIjoidGl0bGUiLCJ5ZWFyIjoxOTgwfSwic2'
+          + 'NhbkluZGV4Rm9yd2FyZCI6dHJ1ZSwibGltaXQiOjEsImN1cnJlbnRQYWdlIjoyfQ=='
+      });
+      expect(result).to.deep.equal({
+        payload: [{ id: 'uuid', title: 'title' }],
+        page: {
+          next: {
+            limit: 1,
+            cursor: 'eyJsYXN0RXZhbHVhdGVkS2V5Ijp7ImlkIjoidXVpZCIsInRpdGxlIjoidGl0bGUiLCJ5ZWFyIjoxOTgwfSwi'
+              + 'c2NhbkluZGV4Rm9yd2FyZCI6dHJ1ZSwiY3VycmVudFBhZ2UiOjMsImxpbWl0IjoxfQ=='
+          },
+          index: { current: 2 },
+          size: 1
+        }
+      });
+      checkCallbackLog(['list']);
+      await nockDone();
+    });
+
+    it('Testing List with Invalid Cursor', async () => {
+      const nockDone = await new Promise(resolve => nockBack('model/listInvalidCursor.json', {}, resolve));
+      try {
+        await defaultModel.list({
+          indexName: 'index-name',
+          indexMap: { title: 'title', year: 1980 },
+          fields: ['id', 'title'],
+          cursor: '--invalid--'
+        });
+      } catch (err) {
+        expect(err).to.be.instanceOf(InvalidPageCursor);
+        checkCallbackLog([]);
+        await nockDone();
+      }
+    });
   });
 });

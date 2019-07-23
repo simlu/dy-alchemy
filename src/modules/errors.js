@@ -11,3 +11,10 @@ class DefaultItemExists extends Error {
   }
 }
 module.exports.DefaultItemExistsError = DefaultItemExists;
+
+class InvalidPageCursor extends Error {
+  constructor() {
+    super('Invalid Page Cursor.');
+  }
+}
+module.exports.InvalidPageCursor = InvalidPageCursor;
