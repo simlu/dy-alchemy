@@ -75,11 +75,11 @@ describe('Dynamo Sdk Tests', () => {
 
   it('Init With Defaults', () => {
     // eslint-disable-next-line no-new
-    new DynamoModel({ modelName: '', tableName: '' });
+    new DynamoModel({ modelName: '', tableName: '', schema });
   });
 
   it('Testing precheck', async () => {
-    const model = new DynamoModel({ modelName: 'model', awsConfig });
+    const model = new DynamoModel({ modelName: 'model', awsConfig, schema });
     try {
       await model.get({ id: 'uuid', fields: ['keywords'] });
     } catch (err) {
