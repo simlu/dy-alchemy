@@ -97,7 +97,7 @@ describe('Dynamo Sdk Tests', () => {
   };
 
   describe('Testing Get', () => {
-    it('Testing Get', async () => {
+    it('Testing Get Base Case', async () => {
       const nockDone = await new Promise(resolve => nockBack('model/get.json', {}, resolve));
       expect(await defaultModel.get({ id: 'uuid', fields: ['keywords'] }))
         .to.deep.equal({ keywords: ['keyword1', 'keyword2'] });
@@ -148,7 +148,7 @@ describe('Dynamo Sdk Tests', () => {
   });
 
   describe('Testing Create', () => {
-    it('Testing Create', async () => {
+    it('Testing Create Base Case', async () => {
       const nockDone = await new Promise(resolve => nockBack('model/create.json', {}, resolve));
       const result = await defaultModel.create({
         id: 'uuid',
@@ -208,7 +208,7 @@ describe('Dynamo Sdk Tests', () => {
   });
 
   describe('Testing Update', () => {
-    it('Testing Update', async () => {
+    it('Testing Update Base Case', async () => {
       const nockDone = await new Promise(resolve => nockBack('model/update.json', {}, resolve));
       const result = await defaultModel.update({
         id: 'uuid',
@@ -265,7 +265,7 @@ describe('Dynamo Sdk Tests', () => {
   });
 
   describe('Testing Delete', () => {
-    it('Testing Delete', async () => {
+    it('Testing Delete Base Case', async () => {
       const nockDone = await new Promise(resolve => nockBack('model/delete.json', {}, resolve));
       await defaultModel.delete({ id: 'uuid' });
       checkCallbackLog(['delete']);
@@ -306,7 +306,7 @@ describe('Dynamo Sdk Tests', () => {
   });
 
   describe('Testing List', () => {
-    it('Testing List', async () => {
+    it('Testing List Base Case', async () => {
       const nockDone = await new Promise(resolve => nockBack('model/list.json', {}, resolve));
       const result = await defaultModel.list({
         indexName: 'index-name',
