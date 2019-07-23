@@ -1,3 +1,4 @@
+const assert = require('assert');
 const get = require('lodash.get');
 const AWS = require('aws-sdk-wrap');
 const { DataMapper, DynamoDbSchema, DynamoDbTable } = require('@aws/dynamodb-data-mapper');
@@ -19,6 +20,10 @@ class Model {
     } = {},
     callback = () => {}
   }) {
+    assert(get(schema, 'id.keyType') === 'HASH', '"id" must have "Hash" keyType.');
+    assert(Object.entries(schema)
+      .filter(([k, _]) => k !== 'id')
+      .every(([_, v]) => v.keyType === undefined), '"keyType" only allowed on "id".');
     class MapperClass {
       constructor(kwargs) {
         Object.assign(this, kwargs);
