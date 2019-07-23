@@ -1,9 +1,9 @@
 const get = require('lodash.get');
 const AWS = require('aws-sdk-wrap');
-const objectFields = require('object-fields');
 const { DataMapper, DynamoDbSchema, DynamoDbTable } = require('@aws/dynamodb-data-mapper');
 const { DefaultItemNotFoundError, DefaultItemExistsError } = require('./errors');
 const { fromCursor, buildPageObject } = require('../util/paging');
+const projectionUtil = require('../util/projection');
 
 const DefaultItemNotFound = ({ id }) => new DefaultItemNotFoundError(id);
 const DefaultItemExists = ({ id }) => new DefaultItemExistsError(id);
@@ -68,7 +68,7 @@ class Model {
     let resp;
     try {
       resp = await this.mapper.get(new this.MapperClass({ id }), {
-        projection: objectFields.split(fields),
+        projection: projectionUtil.format(fields),
         readConsistency: 'strong'
       });
     } catch (err) {
@@ -164,10 +164,10 @@ class Model {
   }) {
     // eslint-disable-next-line no-underscore-dangle
     this._before();
-    const splitFields = objectFields.split(fields);
-    const fieldsContainsId = splitFields.includes('id');
+    const projection = projectionUtil.format(fields);
+    const fieldsContainsId = projection.includes('id');
     if (!fieldsContainsId) {
-      splitFields.push('id');
+      projection.push('id');
     }
 
     const {
@@ -178,7 +178,7 @@ class Model {
     } = fromCursor(cursor);
     const iterator = this.mapper.query(this.MapperClass, indexMap, Object.assign({
       indexName,
-      projection: splitFields,
+      projection,
       scanIndexForward,
       limit: queryLimit
     }, lastEvaluatedKey === null ? {} : { startKey: lastEvaluatedKey }));
