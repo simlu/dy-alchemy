@@ -1,7 +1,6 @@
-const assert = require('assert');
+const { InvalidPageCursor } = require('../modules/errors');
 
 const objectEncode = obj => Buffer.from(JSON.stringify(obj)).toString('base64');
-
 const objectDecode = base64 => JSON.parse(Buffer.from(base64, 'base64').toString('utf8'));
 
 module.exports.fromCursor = (cursor) => {
@@ -10,7 +9,7 @@ module.exports.fromCursor = (cursor) => {
     try {
       cursorPayload = objectDecode(cursor);
     } catch (err) {
-      assert(err.name === 'SyntaxError' && err.message.startsWith('Unexpected token'), err);
+      throw new InvalidPageCursor();
     }
   }
   const {

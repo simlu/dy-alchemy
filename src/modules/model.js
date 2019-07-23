@@ -171,18 +171,17 @@ class Model {
     }
 
     const {
-      lastEvaluatedKey,
+      lastEvaluatedKey = null,
       scanIndexForward = true,
       limit: queryLimit = limit,
       currentPage = null
     } = fromCursor(cursor);
-    const iterator = this.mapper.query(this.MapperClass, indexMap, {
+    const iterator = this.mapper.query(this.MapperClass, indexMap, Object.assign({
       indexName,
       projection: splitFields,
-      startKey: lastEvaluatedKey,
       scanIndexForward,
       limit: queryLimit
-    });
+    }, lastEvaluatedKey === null ? {} : { startKey: lastEvaluatedKey }));
     const payload = [];
     // eslint-disable-next-line no-restricted-syntax
     for await (const r of iterator) {

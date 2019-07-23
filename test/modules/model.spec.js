@@ -2,7 +2,7 @@ const path = require('path');
 const expect = require('chai').expect;
 const nockBack = require('nock').back;
 const DynamoModel = require('../../src/modules/model');
-const { DefaultItemExistsError, DefaultItemNotFoundError } = require('../../src/modules/errors');
+const { DefaultItemExistsError, DefaultItemNotFoundError, InvalidPageCursor } = require('../../src/modules/errors');
 
 
 class CustomItemExistsError extends Error {
@@ -372,22 +372,18 @@ describe('Dynamo Sdk Tests', () => {
 
     it('Testing List with Invalid Cursor', async () => {
       const nockDone = await new Promise(resolve => nockBack('model/listInvalidCursor.json', {}, resolve));
-      const result = await defaultModel.list({
-        indexName: 'index-name',
-        indexMap: { title: 'title', year: 1980 },
-        fields: 'id,title',
-        cursor: '--invalid--'
-      });
-      expect(result).to.deep.equal({
-        payload: [{ id: 'uuid', title: 'title' }],
-        page: {
-          next: null,
-          index: { current: 1 },
-          size: 20
-        }
-      });
-      checkCallbackLog(['list']);
-      await nockDone();
+      try {
+        await defaultModel.list({
+          indexName: 'index-name',
+          indexMap: { title: 'title', year: 1980 },
+          fields: 'id,title',
+          cursor: '--invalid--'
+        });
+      } catch (err) {
+        expect(err).to.be.instanceOf(InvalidPageCursor);
+        checkCallbackLog([]);
+        await nockDone();
+      }
     });
   });
 });
