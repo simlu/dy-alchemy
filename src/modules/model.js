@@ -1,7 +1,8 @@
+const get = require('lodash.get');
 const AWS = require('aws-sdk-wrap');
-const objectFields = require('object-fields');
 const { DataMapper, DynamoDbSchema, DynamoDbTable } = require('@aws/dynamodb-data-mapper');
 const { DefaultItemNotFoundError, DefaultItemExistsError } = require('./errors');
+const { fromCursor, buildPageObject } = require('../util/paging');
 
 const DefaultItemNotFound = ({ id }) => new DefaultItemNotFoundError(id);
 const DefaultItemExists = ({ id }) => new DefaultItemExistsError(id);
@@ -66,7 +67,7 @@ class Model {
     let resp;
     try {
       resp = await this.mapper.get(new this.MapperClass({ id }), {
-        projection: objectFields.split(fields),
+        projection: fields,
         readConsistency: 'strong'
       });
     } catch (err) {
@@ -102,15 +103,19 @@ class Model {
     return this.get({ id, fields });
   }
 
-  async update({ id, data, fields }) {
+  async update({
+    id, data, fields, conditions = []
+  }) {
     // eslint-disable-next-line no-underscore-dangle
     this._before();
     try {
       await this.mapper.update(new this.MapperClass({ ...data, id }), {
         condition: {
-          subject: 'id',
-          type: 'Equals',
-          object: id
+          type: 'And',
+          conditions: [
+            { subject: 'id', type: 'Equals', object: id },
+            ...conditions
+          ]
         },
         onMissing: 'skip'
       });
@@ -125,15 +130,17 @@ class Model {
     return this.get({ id, fields });
   }
 
-  async delete({ id }) {
+  async delete({ id, conditions = [] }) {
     // eslint-disable-next-line no-underscore-dangle
     this._before();
     try {
       await this.mapper.delete(new this.MapperClass({ id }), {
         condition: {
-          subject: 'id',
-          type: 'Equals',
-          object: id
+          type: 'And',
+          conditions: [
+            { subject: 'id', type: 'Equals', object: id },
+            ...conditions
+          ]
         },
         returnValues: 'NONE'
       });
@@ -147,21 +154,52 @@ class Model {
     await this._callback('delete', id);
   }
 
-  async list({ indexName, indexMap, fields }) {
+  async list({
+    indexName,
+    indexMap,
+    fields,
+    ascending = true,
+    limit = 20,
+    cursor = null
+  }) {
     // eslint-disable-next-line no-underscore-dangle
     this._before();
-    const iterator = this.mapper.query(this.MapperClass, indexMap, {
+    const fieldsContainsId = fields.includes('id');
+    const toQuery = fieldsContainsId ? fields : [...fields, 'id'];
+
+    const {
+      lastEvaluatedKey = null,
+      scanIndexForward = ascending,
+      limit: queryLimit = limit,
+      currentPage = null
+    } = fromCursor(cursor);
+    const iterator = this.mapper.query(this.MapperClass, indexMap, Object.assign({
       indexName,
-      projection: objectFields.split(fields)
-    });
-    const resp = [];
+      projection: toQuery,
+      scanIndexForward,
+      limit: queryLimit
+    }, lastEvaluatedKey === null ? {} : { startKey: lastEvaluatedKey }));
+    const payload = [];
     // eslint-disable-next-line no-restricted-syntax
     for await (const r of iterator) {
-      resp.push(r);
+      payload.push(r);
       // eslint-disable-next-line no-underscore-dangle
       await this._callback('list', r.id);
     }
-    return resp;
+
+    const page = buildPageObject(
+      currentPage === null ? 1 : currentPage,
+      queryLimit,
+      get(iterator, 'paginator.lastKey', null)
+    );
+
+    if (!fieldsContainsId) {
+      payload.forEach((p) => {
+        // eslint-disable-next-line no-param-reassign
+        delete p.id;
+      });
+    }
+    return { payload, page };
   }
 }
 

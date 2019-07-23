@@ -20,7 +20,7 @@
         }
       },
       "KeyConditionExpression": "(#attr0 = :val1) AND (#attr2 = :val3)",
-      "ProjectionExpression": "#attr4, #attr0",
+      "ProjectionExpression": "#attr0, #attr4",
       "ScanIndexForward": true,
       "Limit": 20
     },
