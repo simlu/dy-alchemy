@@ -165,7 +165,7 @@ class Model {
     // eslint-disable-next-line no-underscore-dangle
     this._before();
     const fieldsContainsId = fields.includes('id');
-    const toQuery = fieldsContainsId ? [...fields] : [...fields, 'id'];
+    const toQuery = fieldsContainsId ? fields : [...fields, 'id'];
 
     const {
       lastEvaluatedKey = null,
