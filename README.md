@@ -72,7 +72,7 @@ modelName.get({ id, fields });
 _Params_
 
 * `id` string: Id of model to get
-* `fields` string: [object-fields](https://github.com/blackflux/object-fields) representation of the fields to return
+* `fields` array: Array of fields to request
 
 #### Create
 
@@ -87,7 +87,7 @@ _Params_
 
 * `id` string: Id of model to create, must be unique
 * `data` object: Data to populate dynamo tuple. _Important_: `id` is injected into `data`
-* `fields` string: [object-fields](https://github.com/blackflux/object-fields) representation of the fields to return
+* `fields` array: Array of fields to request
 
 #### Update
 
@@ -102,7 +102,7 @@ _Params_
 
 * `id` string: Id of model to update
 * `data` object: Data to update
-* `fields` string: [object-fields](https://github.com/blackflux/object-fields) representation of the fields to return
+* `fields` array: Array of fields to request
 
 #### Delete
 
@@ -130,7 +130,7 @@ _Params_
 
 * `indexName` string: Name of index to query against
 * `indexMap` { [string]: any }: Key / Value map of index attributes to match against
-* `fields` string: [object-fields](https://github.com/blackflux/object-fields) representation of the fields to return
+* `fields` array: Array of fields to request
 
 ## Lock Manager
 

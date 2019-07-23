@@ -3,7 +3,6 @@ const AWS = require('aws-sdk-wrap');
 const { DataMapper, DynamoDbSchema, DynamoDbTable } = require('@aws/dynamodb-data-mapper');
 const { DefaultItemNotFoundError, DefaultItemExistsError } = require('./errors');
 const { fromCursor, buildPageObject } = require('../util/paging');
-const projectionUtil = require('../util/projection');
 
 const DefaultItemNotFound = ({ id }) => new DefaultItemNotFoundError(id);
 const DefaultItemExists = ({ id }) => new DefaultItemExistsError(id);
@@ -68,7 +67,7 @@ class Model {
     let resp;
     try {
       resp = await this.mapper.get(new this.MapperClass({ id }), {
-        projection: projectionUtil.format(fields),
+        projection: fields,
         readConsistency: 'strong'
       });
     } catch (err) {
@@ -159,26 +158,24 @@ class Model {
     indexName,
     indexMap,
     fields,
+    ascending = true,
     limit = 20,
     cursor = null
   }) {
     // eslint-disable-next-line no-underscore-dangle
     this._before();
-    const projection = projectionUtil.format(fields);
-    const fieldsContainsId = projection.includes('id');
-    if (!fieldsContainsId) {
-      projection.push('id');
-    }
+    const fieldsContainsId = fields.includes('id');
+    const toQuery = fieldsContainsId ? [...fields] : [...fields, 'id'];
 
     const {
       lastEvaluatedKey = null,
-      scanIndexForward = true,
+      scanIndexForward = ascending,
       limit: queryLimit = limit,
       currentPage = null
     } = fromCursor(cursor);
     const iterator = this.mapper.query(this.MapperClass, indexMap, Object.assign({
       indexName,
-      projection,
+      projection: toQuery,
       scanIndexForward,
       limit: queryLimit
     }, lastEvaluatedKey === null ? {} : { startKey: lastEvaluatedKey }));
