@@ -18,7 +18,8 @@ class Model {
       ItemNotFound = DefaultItemNotFound,
       ItemExists = DefaultItemExists
     } = {},
-    callback = () => {}
+    callback = () => {},
+    idProvider = null
   }) {
     assert(get(schema, 'id.keyType') === 'HASH', '"id" must have "Hash" keyType.');
     assert(Object.entries(schema)
@@ -41,6 +42,7 @@ class Model {
     this.ItemNotFound = ItemNotFound;
     this.ItemExists = ItemExists;
     this.callback = callback;
+    this.idProvider = idProvider;
   }
 
   // eslint-disable-next-line no-underscore-dangle
@@ -86,7 +88,13 @@ class Model {
     return resp;
   }
 
-  async create({ id, data, fields }) {
+  async create({
+    id: providedId = null,
+    data,
+    fields
+  }) {
+    assert(providedId !== null || this.idProvider !== null);
+    const id = providedId !== null ? providedId : this.idProvider(data);
     // eslint-disable-next-line no-underscore-dangle
     this._before();
     try {

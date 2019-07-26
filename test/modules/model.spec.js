@@ -36,12 +36,12 @@ const schema = {
     memberType: { type: 'String' }
   }
 };
-
 const awsConfig = {
   region: 'us-west-2',
   accessKeyId: 'XXXXXXXXXXXXXXXXXXXX',
   secretAccessKey: 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'
 };
+const idProvider = () => 'uuid';
 describe('Dynamo Sdk Tests', () => {
   let callbackLog = [];
   const defaultModel = new DynamoModel({
@@ -51,7 +51,8 @@ describe('Dynamo Sdk Tests', () => {
     awsConfig,
     callback: (args) => {
       callbackLog.push(args);
-    }
+    },
+    idProvider
   });
   const customErrorModel = new DynamoModel({
     modelName: 'customErrorMap',
@@ -61,7 +62,8 @@ describe('Dynamo Sdk Tests', () => {
     errorMap: {
       ItemExists: CustomItemExists,
       ItemNotFound: CustomItemNotFound
-    }
+    },
+    idProvider
   });
 
   before(() => {
@@ -87,9 +89,9 @@ describe('Dynamo Sdk Tests', () => {
     }
   });
 
-  const checkCallbackLog = (actionTypes) => {
+  const checkCallbackLog = (actionTypes, id = 'uuid') => {
     expect(callbackLog).to.deep.equal(actionTypes.map(actionType => ({
-      id: 'uuid',
+      id,
       modelName: 'default',
       tableName: 'dy-alchemy-table',
       actionType
@@ -151,7 +153,6 @@ describe('Dynamo Sdk Tests', () => {
     it('Testing Create Base Case', async () => {
       const nockDone = await new Promise(resolve => nockBack('model/create.json', {}, resolve));
       const result = await defaultModel.create({
-        id: 'uuid',
         data: { keywords: ['keyword1', 'keyword2'] },
         fields: ['keywords']
       });
@@ -160,11 +161,22 @@ describe('Dynamo Sdk Tests', () => {
       await nockDone();
     });
 
+    it('Testing Create with providedId', async () => {
+      const nockDone = await new Promise(resolve => nockBack('model/createProvidedId.json', {}, resolve));
+      const result = await defaultModel.create({
+        id: 'providedId',
+        data: { keywords: ['keyword1', 'keyword2'] },
+        fields: ['keywords']
+      });
+      expect(result).to.deep.equal({ keywords: ['keyword1', 'keyword2'] });
+      checkCallbackLog(['create', 'get'], 'providedId');
+      await nockDone();
+    });
+
     it('Testing Create Item Exists Custom', async () => {
       const nockDone = await new Promise(resolve => nockBack('model/createItemExistsCustom.json', {}, resolve));
       try {
         await customErrorModel.create({
-          id: 'uuid',
           data: { keywords: ['keyword1', 'keyword2'] },
           fields: ['keywords']
         });
@@ -179,7 +191,6 @@ describe('Dynamo Sdk Tests', () => {
       const nockDone = await new Promise(resolve => nockBack('model/createItemExistsDefault.json', {}, resolve));
       try {
         await defaultModel.create({
-          id: 'uuid',
           data: { keywords: ['keyword1', 'keyword2'] },
           fields: ['keywords']
         });
@@ -195,7 +206,6 @@ describe('Dynamo Sdk Tests', () => {
       const nockDone = await new Promise(resolve => nockBack('model/createError.json', {}, resolve));
       try {
         await defaultModel.create({
-          id: 'uuid',
           data: { keywords: ['keyword1', 'keyword2'] },
           fields: ['keywords']
         });
