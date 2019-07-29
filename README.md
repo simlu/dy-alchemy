@@ -37,7 +37,8 @@ const model = new Model({
   },
   callback: (/* {
     id, modelName, tableName, actionType
-  } */) => { /* ... */ }
+  } */) => { /* ... */ },
+  primaryKeys: []
 });
 model.get(/* ... */);
 ```
@@ -50,6 +51,7 @@ _Params_
 * `awsConfig` _object_: Optional hard coded config passed to aws-sdk
 * `errorMap` _object_: Optional Key / Value map to allow custom errors
 * `callback` _function_: Optional hook after successful actions, `actionType` may be one of ['get', 'create', 'update', 'delete']
+* `primaryKeys` _array\<string\>_: Optional list of keys to automatically generate an id. If provided, keys are required on object created.
 
 ### Model Methods
 
@@ -80,14 +82,17 @@ Creates object using [Dynamodb::PutItem](https://docs.aws.amazon.com/AWSJavaScri
 
 <!-- eslint-disable no-undef -->
 ```js
-modelName.create({ id, data, fields });
+modelName.create({
+  id, data, fields, conditions
+});
 ```
 
 _Params_
 
-* `id` string: Id of model to create, must be unique
+* `id` string: Id of model to create, must be unique. _Must provide id or configure primaryKeys but not both_.
 * `data` object: Data to populate dynamo tuple. _Important_: `id` is injected into `data`
 * `fields` array: Array of fields to request
+* `conditions` array: Optional list of [Amazon DynamoDB Expressions](https://github.com/awslabs/dynamodb-data-mapper-js/tree/master/packages/dynamodb-expressions)
 
 #### Update
 
@@ -95,7 +100,9 @@ Do a partial update on object using [Dynamodb::UpdateItem](https://docs.aws.amaz
 
 <!-- eslint-disable no-undef -->
 ```js
-modelName.update({ id, data, fields });
+modelName.update({
+  id, data, fields, conditions
+});
 ```
 
 _Params_
@@ -103,6 +110,25 @@ _Params_
 * `id` string: Id of model to update
 * `data` object: Data to update
 * `fields` array: Array of fields to request
+* `conditions` array: Optional list of [Amazon DynamoDB Expressions](https://github.com/awslabs/dynamodb-data-mapper-js/tree/master/packages/dynamodb-expressions)
+
+#### Upsert
+
+Upserts object using [Dynamodb::PutItem](https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/DynamoDB.html#putItem-property)
+
+<!-- eslint-disable no-undef -->
+```js
+modelName.upsert({
+  id, data, fields, conditions
+});
+```
+
+_Params_
+
+* `id` string: Id of model to upsert. _Must provide id or configure primaryKeys but not both_.
+* `data` object: Data to populate dynamo tuple. _Important_: `id` is injected into `data`
+* `fields` array: Array of fields to request
+* `conditions` array: Optional list of [Amazon DynamoDB Expressions](https://github.com/awslabs/dynamodb-data-mapper-js/tree/master/packages/dynamodb-expressions)
 
 #### Delete
 
@@ -110,12 +136,13 @@ Delete an object using [Dynamodb::DeleteItem](https://docs.aws.amazon.com/AWSJav
 
 <!-- eslint-disable no-undef -->
 ```js
-modelName.delete({ id });
+modelName.delete({ id, conditions });
 ```
 
 _Params_
 
 * `id` string: Id of model to delete
+* `conditions` array: Optional list of [Amazon DynamoDB Expressions](https://github.com/awslabs/dynamodb-data-mapper-js/tree/master/packages/dynamodb-expressions)
 
 #### List
 

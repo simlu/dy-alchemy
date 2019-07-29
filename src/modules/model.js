@@ -1,8 +1,13 @@
 const assert = require('assert');
 const get = require('lodash.get');
 const AWS = require('aws-sdk-wrap');
+const objectHash = require('object-hash');
 const { DataMapper, DynamoDbSchema, DynamoDbTable } = require('@aws/dynamodb-data-mapper');
-const { DefaultItemNotFoundError, DefaultItemExistsError } = require('./errors');
+const {
+  DefaultItemNotFoundError, DefaultItemExistsError,
+  CannotUpdatePrimaryKeys, MustProvideIdXorPrimaryKeys,
+  IncompletePrimaryKey
+} = require('./errors');
 const { fromCursor, buildPageObject } = require('../util/paging');
 
 const DefaultItemNotFound = ({ id }) => new DefaultItemNotFoundError(id);
@@ -18,12 +23,15 @@ class Model {
       ItemNotFound = DefaultItemNotFound,
       ItemExists = DefaultItemExists
     } = {},
-    callback = () => {}
+    callback = () => {},
+    primaryKeys = null
   }) {
     assert(get(schema, 'id.keyType') === 'HASH', '"id" must have "Hash" keyType.');
     assert(Object.entries(schema)
       .filter(([k, _]) => k !== 'id')
       .every(([_, v]) => v.keyType === undefined), '"keyType" only allowed on "id".');
+    assert(primaryKeys === null || Array.isArray(primaryKeys));
+
     class MapperClass {
       constructor(kwargs) {
         Object.assign(this, kwargs);
@@ -41,6 +49,7 @@ class Model {
     this.ItemNotFound = ItemNotFound;
     this.ItemExists = ItemExists;
     this.callback = callback;
+    this.primaryKeys = primaryKeys;
   }
 
   // eslint-disable-next-line no-underscore-dangle
@@ -66,6 +75,21 @@ class Model {
     });
   }
 
+  // eslint-disable-next-line no-underscore-dangle
+  _generateId(data, providedId) {
+    assert(data instanceof Object && !Array.isArray(data), data);
+    assert(providedId === null || typeof providedId === 'string');
+    if ((typeof providedId !== 'string') === (!Array.isArray(this.primaryKeys))) {
+      throw new MustProvideIdXorPrimaryKeys();
+    }
+    if (Array.isArray(this.primaryKeys) && this.primaryKeys.some(k => data[k] === undefined)) {
+      throw new IncompletePrimaryKey();
+    }
+    return typeof providedId === 'string'
+      ? providedId
+      : objectHash(this.primaryKeys.reduce((prev, cur) => Object.assign(prev, { [cur]: data[cur] }), {}));
+  }
+
   async get({ id, fields }) {
     // eslint-disable-next-line no-underscore-dangle
     this._before();
@@ -86,15 +110,24 @@ class Model {
     return resp;
   }
 
-  async create({ id, data, fields }) {
+  async create({
+    id: providedId = null,
+    data,
+    fields,
+    conditions = []
+  }) {
     // eslint-disable-next-line no-underscore-dangle
     this._before();
+    // eslint-disable-next-line no-underscore-dangle
+    const id = this._generateId(data, providedId);
     try {
       await this.mapper.put(new this.MapperClass({ ...data, id }), {
         condition: {
-          subject: 'id',
-          type: 'NotEquals',
-          object: id
+          type: 'And',
+          conditions: [
+            { subject: 'id', type: 'NotEquals', object: id },
+            ...conditions
+          ]
         }
       });
     } catch (err) {
@@ -113,6 +146,9 @@ class Model {
   }) {
     // eslint-disable-next-line no-underscore-dangle
     this._before();
+    if (Array.isArray(this.primaryKeys) && this.primaryKeys.some(k => data[k] !== undefined)) {
+      throw new CannotUpdatePrimaryKeys();
+    }
     try {
       await this.mapper.update(new this.MapperClass({ ...data, id }), {
         condition: {
@@ -132,6 +168,25 @@ class Model {
     }
     // eslint-disable-next-line no-underscore-dangle
     await this._callback('update', id);
+    return this.get({ id, fields });
+  }
+
+  async upsert({
+    id: providedId = null,
+    data,
+    fields,
+    conditions = []
+  }) {
+    // eslint-disable-next-line no-underscore-dangle
+    this._before();
+    // eslint-disable-next-line no-underscore-dangle
+    const id = this._generateId(data, providedId);
+    await this.mapper.put(
+      new this.MapperClass({ ...data, id }),
+      conditions.length === 0 ? {} : { condition: { type: 'And', conditions: [...conditions] } }
+    );
+    // eslint-disable-next-line no-underscore-dangle
+    await this._callback('upsert', id);
     return this.get({ id, fields });
   }
 
