@@ -5,8 +5,10 @@
   "main": "lib/index.js",
   "dependencies": {
     "@aws/dynamodb-data-mapper": "0.7.3",
+    "@hapi/joi": "15.1.0",
     "aws-sdk-wrap": "3.0.3",
     "dynamodb-lock-client": "0.4.2",
+    "joi-strict": "1.0.4",
     "lodash.get": "4.4.2"
   },
   "devDependencies": {
