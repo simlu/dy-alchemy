@@ -111,12 +111,12 @@ class Model {
       });
     } catch (err) {
       if (err.name === 'ItemNotFoundException') {
-        throw this.ItemNotFound({ id });
+        throw this.ItemNotFound({ id, reason: 'item_not_found' });
       }
       throw err;
     }
     if (evaluate(condition, resp) !== true) {
-      throw this.ItemNotFound({ id });
+      throw this.ItemNotFound({ id, reason: 'conditional_check_failed' });
     }
     // eslint-disable-next-line no-underscore-dangle
     await this._callback('get', id);
@@ -178,7 +178,7 @@ class Model {
       });
     } catch (err) {
       if (err.code === 'ConditionalCheckFailedException') {
-        throw this.ItemNotFound({ id });
+        throw this.ItemNotFound({ id, reason: 'conditional_check_failed' });
       }
       throw err;
     }
@@ -226,7 +226,7 @@ class Model {
       });
     } catch (err) {
       if (err.code === 'ConditionalCheckFailedException') {
-        throw this.ItemNotFound({ id });
+        throw this.ItemNotFound({ id, reason: 'conditional_check_failed' });
       }
       throw err;
     }
