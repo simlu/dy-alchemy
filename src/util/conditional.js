@@ -1,3 +1,5 @@
+const { UnknownConditionType, ConditionNotImplemented } = require('../modules/errors');
+
 const evaluate = (condition, object) => {
   switch (condition.type) {
     case 'Equals':
@@ -17,16 +19,16 @@ const evaluate = (condition, object) => {
         && object[condition.subject] <= condition.upperBound;
     case 'Membership':
       return condition.values.includes(object[condition.subject]);
-    case 'Function':
-      throw new Error('Not implemented');
     case 'Not':
       return !evaluate(condition.condition, object);
     case 'And':
       return condition.conditions.map(cond => evaluate(cond, object)).every(e => e === true);
     case 'Or':
       return condition.conditions.map(cond => evaluate(cond, object)).some(e => e === true);
+    case 'Function':
+      throw new ConditionNotImplemented();
     default:
-      throw new Error(`Unknown condition type "${condition.type}" provided`);
+      throw new UnknownConditionType(condition.type);
   }
 };
 module.exports.evaluate = evaluate;
@@ -42,15 +44,15 @@ const extract = (condition) => {
     case 'Between':
     case 'Membership':
       return [condition.subject];
-    case 'Function':
-      throw new Error('Not implemented');
     case 'Not':
       return extract(condition.condition);
     case 'And':
     case 'Or':
       return [...condition.conditions.map(cond => extract(cond))];
+    case 'Function':
+      throw new ConditionNotImplemented();
     default:
-      throw new Error(`Unknown condition type "${condition.type}" provided`);
+      throw new UnknownConditionType(condition.type);
   }
 };
 module.exports.extract = extract;
