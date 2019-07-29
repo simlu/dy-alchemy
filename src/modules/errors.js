@@ -18,3 +18,17 @@ class InvalidPageCursor extends Error {
   }
 }
 module.exports.InvalidPageCursor = InvalidPageCursor;
+
+class UnknownConditionType extends Error {
+  constructor(type) {
+    super(`Unknown condition type "${type}" provided`);
+  }
+}
+module.exports.UnknownConditionType = UnknownConditionType;
+
+class ConditionNotImplemented extends Error {
+  constructor() {
+    super('Condition not implemented');
+  }
+}
+module.exports.ConditionNotImplemented = ConditionNotImplemented;
