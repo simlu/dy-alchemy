@@ -118,6 +118,24 @@ describe('Dynamo Sdk Tests', () => {
       await nockDone();
     });
 
+    it('Testing Get Condition Not Matched', async () => {
+      const nockDone = await new Promise(resolve => nockBack('model/getConditionNotMatched.json', {}, resolve));
+      try {
+        await defaultModel.get({
+          id: 'uuid',
+          fields: ['keywords'],
+          conditions: [{
+            subject: 'id', type: 'Equals', object: '1234'
+          }]
+        });
+      } catch (err) {
+        expect(err).instanceof(DefaultItemNotFoundError);
+        expect(err.message).to.equal('Item not found.');
+        checkCallbackLog([]);
+        await nockDone();
+      }
+    });
+
     it('Testing Get Custom Error Sdk (default callback coverage)', async () => {
       const nockDone = await new Promise(resolve => nockBack('model/get.json', {}, resolve));
       const result = await customErrorModel.get({ id: 'uuid', fields: ['keywords'] });
@@ -361,7 +379,7 @@ describe('Dynamo Sdk Tests', () => {
       expect(result).to.deep.equal({ keywords: ['keyword1', 'keyword2'] });
       checkCallbackLog(['upsert', 'get'], 'aca3ddb278ff58d7ac44cebd96802b3e66528910');
       await nockDone();
-    }).timeout(55555);
+    });
 
     it('Testing Upsert With Conditions', async () => {
       const nockDone = await new Promise(resolve => nockBack('model/upsertWithConditions.json', {}, resolve));
@@ -374,7 +392,7 @@ describe('Dynamo Sdk Tests', () => {
       expect(result).to.deep.equal({ keywords: ['keyword1', 'keyword2'] });
       checkCallbackLog(['upsert', 'get']);
       await nockDone();
-    }).timeout(55555);
+    });
   });
 
   describe('Testing Delete', () => {

@@ -1,6 +1,7 @@
 const assert = require('assert');
 const get = require('lodash.get');
 const AWS = require('aws-sdk-wrap');
+const { retain } = require('object-fields');
 const objectHash = require('object-hash');
 const { DataMapper, DynamoDbSchema, DynamoDbTable } = require('@aws/dynamodb-data-mapper');
 const {
@@ -9,6 +10,7 @@ const {
   IncompletePrimaryKey
 } = require('./errors');
 const { fromCursor, buildPageObject } = require('../util/paging');
+const { validate, extract, evaluate } = require('../util/conditional');
 
 const DefaultItemNotFound = ({ id }) => new DefaultItemNotFoundError(id);
 const DefaultItemExists = ({ id }) => new DefaultItemExistsError(id);
@@ -90,13 +92,21 @@ class Model {
       : objectHash(this.primaryKeys.reduce((prev, cur) => Object.assign(prev, { [cur]: data[cur] }), {}));
   }
 
-  async get({ id, fields }) {
+  async get({ id, fields, conditions = [] }) {
     // eslint-disable-next-line no-underscore-dangle
     this._before();
+    const condition = {
+      type: 'And',
+      conditions: [
+        { subject: 'id', type: 'Equals', object: id },
+        ...conditions
+      ]
+    };
+    validate(condition);
     let resp;
     try {
       resp = await this.mapper.get(new this.MapperClass({ id }), {
-        projection: fields,
+        projection: Array.from(new Set(fields.concat(extract(condition)))),
         readConsistency: 'strong'
       });
     } catch (err) {
@@ -105,8 +115,12 @@ class Model {
       }
       throw err;
     }
+    if (evaluate(condition, resp) !== true) {
+      throw this.ItemNotFound({ id });
+    }
     // eslint-disable-next-line no-underscore-dangle
     await this._callback('get', id);
+    retain(resp, fields);
     return resp;
   }
 
@@ -120,16 +134,16 @@ class Model {
     this._before();
     // eslint-disable-next-line no-underscore-dangle
     const id = this._generateId(data, providedId);
+    const condition = {
+      type: 'And',
+      conditions: [
+        { subject: 'id', type: 'NotEquals', object: id },
+        ...conditions
+      ]
+    };
+    validate(condition);
     try {
-      await this.mapper.put(new this.MapperClass({ ...data, id }), {
-        condition: {
-          type: 'And',
-          conditions: [
-            { subject: 'id', type: 'NotEquals', object: id },
-            ...conditions
-          ]
-        }
-      });
+      await this.mapper.put(new this.MapperClass({ ...data, id }), { condition });
     } catch (err) {
       if (err.name === 'ConditionalCheckFailedException') {
         throw this.ItemExists({ id });
@@ -146,18 +160,20 @@ class Model {
   }) {
     // eslint-disable-next-line no-underscore-dangle
     this._before();
+    const condition = {
+      type: 'And',
+      conditions: [
+        { subject: 'id', type: 'Equals', object: id },
+        ...conditions
+      ]
+    };
+    validate(condition);
     if (Array.isArray(this.primaryKeys) && this.primaryKeys.some(k => data[k] !== undefined)) {
       throw new CannotUpdatePrimaryKeys();
     }
     try {
       await this.mapper.update(new this.MapperClass({ ...data, id }), {
-        condition: {
-          type: 'And',
-          conditions: [
-            { subject: 'id', type: 'Equals', object: id },
-            ...conditions
-          ]
-        },
+        condition,
         onMissing: 'skip'
       });
     } catch (err) {
@@ -181,9 +197,11 @@ class Model {
     this._before();
     // eslint-disable-next-line no-underscore-dangle
     const id = this._generateId(data, providedId);
+    const condition = { type: 'And', conditions };
+    validate(condition);
     await this.mapper.put(
       new this.MapperClass({ ...data, id }),
-      conditions.length === 0 ? {} : { condition: { type: 'And', conditions: [...conditions] } }
+      conditions.length === 0 ? {} : { condition }
     );
     // eslint-disable-next-line no-underscore-dangle
     await this._callback('upsert', id);
@@ -193,15 +211,17 @@ class Model {
   async delete({ id, conditions = [] }) {
     // eslint-disable-next-line no-underscore-dangle
     this._before();
+    const condition = {
+      type: 'And',
+      conditions: [
+        { subject: 'id', type: 'Equals', object: id },
+        ...conditions
+      ]
+    };
+    validate(condition);
     try {
       await this.mapper.delete(new this.MapperClass({ id }), {
-        condition: {
-          type: 'And',
-          conditions: [
-            { subject: 'id', type: 'Equals', object: id },
-            ...conditions
-          ]
-        },
+        condition,
         returnValues: 'NONE'
       });
     } catch (err) {

@@ -178,7 +178,7 @@ describe('Testing conditional.js', () => {
         expect(extract({
           type: `${c}`,
           conditions: [{ object: '56629a41-b24b-42c6-9f02-277412e96d25', type: 'Equals', subject: 'id' }]
-        })).to.deep.equal([['id']]);
+        })).to.deep.equal(['id']);
       });
     });
 
