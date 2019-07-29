@@ -40,12 +40,12 @@ class CannotUpdatePrimaryKeys extends Error {
 }
 module.exports.CannotUpdatePrimaryKeys = CannotUpdatePrimaryKeys;
 
-class MustProvideIdOrPrimaryKeys extends Error {
+class MustProvideIdXorPrimaryKeys extends Error {
   constructor() {
     super('Provide either "primaryKeys" or "id", but not both.');
   }
 }
-module.exports.MustProvideIdOrPrimaryKeys = MustProvideIdOrPrimaryKeys;
+module.exports.MustProvideIdXorPrimaryKeys = MustProvideIdXorPrimaryKeys;
 
 class IncompletePrimaryKey extends Error {
   constructor() {

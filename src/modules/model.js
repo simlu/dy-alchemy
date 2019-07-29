@@ -5,7 +5,7 @@ const objectHash = require('object-hash');
 const { DataMapper, DynamoDbSchema, DynamoDbTable } = require('@aws/dynamodb-data-mapper');
 const {
   DefaultItemNotFoundError, DefaultItemExistsError,
-  CannotUpdatePrimaryKeys, MustProvideIdOrPrimaryKeys,
+  CannotUpdatePrimaryKeys, MustProvideIdXorPrimaryKeys,
   IncompletePrimaryKey
 } = require('./errors');
 const { fromCursor, buildPageObject } = require('../util/paging');
@@ -77,7 +77,7 @@ class Model {
   // eslint-disable-next-line no-underscore-dangle
   _generateId(data, providedId) {
     if ((providedId === null) === (this.primaryKeys === null)) {
-      throw new MustProvideIdOrPrimaryKeys();
+      throw new MustProvideIdXorPrimaryKeys();
     }
     if (this.primaryKeys !== null && this.primaryKeys.some(k => data[k] === undefined)) {
       throw new IncompletePrimaryKey();

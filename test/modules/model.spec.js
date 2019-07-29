@@ -5,7 +5,7 @@ const DynamoModel = require('../../src/modules/model');
 const {
   DefaultItemExistsError, DefaultItemNotFoundError,
   InvalidPageCursor,
-  CannotUpdatePrimaryKeys, IncompletePrimaryKey, MustProvideIdOrPrimaryKeys
+  CannotUpdatePrimaryKeys, IncompletePrimaryKey, MustProvideIdXorPrimaryKeys
 } = require('../../src/modules/errors');
 
 
@@ -213,7 +213,7 @@ describe('Dynamo Sdk Tests', () => {
           fields: ['keywords']
         });
       } catch (err) {
-        expect(err).instanceof(MustProvideIdOrPrimaryKeys);
+        expect(err).instanceof(MustProvideIdXorPrimaryKeys);
         await nockDone();
       }
     });
