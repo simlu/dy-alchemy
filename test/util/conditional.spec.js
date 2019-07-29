@@ -222,5 +222,33 @@ describe('Testing conditional.js', () => {
         object: '56629a41-b24b-42c6-9f02-277412e96d25'
       })).to.not.throw();
     });
+
+    it('Testing validate "Not And Simple', () => {
+      expect(() => validate({
+        type: 'Not',
+        condition: {
+          type: 'And',
+          conditions: [{
+            subject: 'id',
+            type: 'Equals',
+            object: '56629a41-b24b-42c6-9f02-277412e96d25'
+          }]
+        }
+      })).to.not.throw();
+    });
+
+    it('Testing validate "Or Not Simple', () => {
+      expect(() => validate({
+        type: 'Or',
+        conditions: [{
+          type: 'Not',
+          condition: {
+            subject: 'id',
+            type: 'Equals',
+            object: '56629a41-b24b-42c6-9f02-277412e96d25'
+          }
+        }]
+      })).to.not.throw();
+    });
   });
 });

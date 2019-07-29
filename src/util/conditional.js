@@ -1,44 +1,47 @@
 const Joi = require('joi-strict');
 const { InvalidCondition, ConditionNotImplemented } = require('../modules/errors');
 
-const conditionSimple = Joi.alternatives(
-  Joi.object().keys({
-    subject: Joi.string(),
-    type: Joi.string()
-      .valid('Equals', 'NotEquals', 'LessThan', 'LessThanOrEqualTo', 'GreaterThan', 'GreaterThanOrEqualTo'),
-    object: Joi.alternatives(Joi.string(), Joi.number())
-  }),
-  Joi.object().keys({
-    subject: Joi.string(),
-    type: Joi.string().valid('Between'),
-    lowerBound: Joi.alternatives(Joi.string(), Joi.number()),
-    upperBound: Joi.alternatives(Joi.string(), Joi.number())
-  }),
-  Joi.object().keys({
-    subject: Joi.string(),
-    type: Joi.string().valid('Membership'),
-    values: Joi.array().items(Joi.alternatives(Joi.string(), Joi.number()))
-  }),
-  Joi.object().keys({
-    subject: Joi.string(),
-    type: Joi.string().valid('Function'),
-    name: Joi.string().valid('attribute_exists', 'attribute_not_exists', 'attribute_type', 'begins_with', 'contains'),
-    expected: Joi.string().optional()
-  })
-);
-const conditionAndOr = Joi.alternatives(
-  Joi.object().keys({
-    type: Joi.string().valid('Or', 'And'),
-    conditions: Joi.array().items(conditionSimple)
-  })
-);
-const conditionNot = Joi.alternatives(
-  Joi.object().keys({
-    type: Joi.string().valid('Not'),
-    condition: conditionSimple
-  })
-);
-const schema = Joi.alternatives(conditionSimple, conditionAndOr, conditionNot);
+const schema = (() => {
+  const conditionSimple = Joi.alternatives(
+    Joi.object().keys({
+      subject: Joi.string(),
+      type: Joi.string()
+        .valid('Equals', 'NotEquals', 'LessThan', 'LessThanOrEqualTo', 'GreaterThan', 'GreaterThanOrEqualTo'),
+      object: Joi.alternatives(Joi.string(), Joi.number())
+    }),
+    Joi.object().keys({
+      subject: Joi.string(),
+      type: Joi.string().valid('Between'),
+      lowerBound: Joi.alternatives(Joi.string(), Joi.number()),
+      upperBound: Joi.alternatives(Joi.string(), Joi.number())
+    }),
+    Joi.object().keys({
+      subject: Joi.string(),
+      type: Joi.string().valid('Membership'),
+      values: Joi.array().items(Joi.alternatives(Joi.string(), Joi.number()))
+    }),
+    Joi.object().keys({
+      subject: Joi.string(),
+      type: Joi.string().valid('Function'),
+      name: Joi.string().valid('attribute_exists', 'attribute_not_exists', 'attribute_type', 'begins_with', 'contains'),
+      expected: Joi.string().optional()
+    })
+  );
+  let conditionNot;
+  const conditionAndOr = Joi.alternatives(
+    Joi.object().keys({
+      type: Joi.string().valid('Or', 'And'),
+      conditions: Joi.array().items(Joi.lazy(() => Joi.alternatives(conditionSimple, conditionAndOr, conditionNot)))
+    })
+  );
+  conditionNot = Joi.alternatives(
+    Joi.object().keys({
+      type: Joi.string().valid('Not'),
+      condition: Joi.lazy(() => Joi.alternatives(conditionSimple, conditionAndOr, conditionNot))
+    })
+  );
+  return Joi.alternatives(conditionSimple, conditionAndOr, conditionNot);
+})();
 
 const validate = (condition) => {
   try {
