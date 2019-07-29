@@ -87,7 +87,7 @@ modelName.create({ id, data, fields });
 
 _Params_
 
-* `id` string: Id of model to create, must be unique. _Optional if primaryKeys configured_.
+* `id` string: Id of model to create, must be unique. _Must provide id or configure primaryKeys but not both_.
 * `data` object: Data to populate dynamo tuple. _Important_: `id` is injected into `data`
 * `fields` array: Array of fields to request
 
@@ -117,7 +117,7 @@ modelName.upsert({ id, data, fields });
 
 _Params_
 
-* `id` string: Id of model to upsert. _Optional if primaryKeys configured_.
+* `id` string: Id of model to upsert. _Must provide id or configure primaryKeys but not both_.
 * `data` object: Data to populate dynamo tuple. _Important_: `id` is injected into `data`
 * `fields` array: Array of fields to request
 

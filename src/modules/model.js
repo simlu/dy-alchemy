@@ -23,7 +23,8 @@ class Model {
       ItemNotFound = DefaultItemNotFound,
       ItemExists = DefaultItemExists
     } = {},
-    callback = () => {},
+    callback = () => {
+    },
     primaryKeys = null
   }) {
     assert(get(schema, 'id.keyType') === 'HASH', '"id" must have "Hash" keyType.');
@@ -31,11 +32,13 @@ class Model {
       .filter(([k, _]) => k !== 'id')
       .every(([_, v]) => v.keyType === undefined), '"keyType" only allowed on "id".');
     assert(primaryKeys === null || Array.isArray(primaryKeys));
+
     class MapperClass {
       constructor(kwargs) {
         Object.assign(this, kwargs);
       }
     }
+
     Object.defineProperties(MapperClass.prototype, {
       [DynamoDbTable]: { value: tableName },
       [DynamoDbSchema]: { value: schema }
@@ -76,17 +79,18 @@ class Model {
 
   // eslint-disable-next-line no-underscore-dangle
   _generateId(data, providedId) {
-    if ((providedId === null) === (this.primaryKeys === null)) {
+    assert(typeof data === 'object' && !Array.isArray(data));
+    assert(providedId === null || typeof providedId === 'string');
+    assert(this.primaryKeys === null || Array.isArray(this.primaryKeys));
+    if ((providedId === null) === (!Array.isArray(this.primaryKeys))) {
       throw new MustProvideIdXorPrimaryKeys();
     }
-    if (this.primaryKeys !== null && this.primaryKeys.some(k => data[k] === undefined)) {
+    if (Array.isArray(this.primaryKeys) && this.primaryKeys.some(k => data[k] === undefined)) {
       throw new IncompletePrimaryKey();
     }
-    return providedId !== null
+    return typeof providedId === 'string'
       ? providedId
-      : objectHash(this.primaryKeys
-        .sort()
-        .reduce((prev, cur) => Object.assign(prev, { [cur]: data[cur] }), {}));
+      : objectHash(this.primaryKeys.reduce((prev, cur) => Object.assign(prev, { [cur]: data[cur] }), {}));
   }
 
   async get({ id, fields }) {
@@ -112,7 +116,8 @@ class Model {
   async create({
     id: providedId = null,
     data,
-    fields
+    fields,
+    conditions = []
   }) {
     // eslint-disable-next-line no-underscore-dangle
     this._before();
@@ -121,9 +126,11 @@ class Model {
     try {
       await this.mapper.put(new this.MapperClass({ ...data, id }), {
         condition: {
-          subject: 'id',
-          type: 'NotEquals',
-          object: id
+          type: 'And',
+          conditions: [
+            { subject: 'id', type: 'NotEquals', object: id },
+            ...conditions
+          ]
         }
       });
     } catch (err) {
@@ -142,7 +149,7 @@ class Model {
   }) {
     // eslint-disable-next-line no-underscore-dangle
     this._before();
-    if (this.primaryKeys !== null && this.primaryKeys.some(k => data[k] !== undefined)) {
+    if (Array.isArray(this.primaryKeys) && this.primaryKeys.some(k => data[k] !== undefined)) {
       throw new CannotUpdatePrimaryKeys();
     }
     try {
@@ -170,13 +177,17 @@ class Model {
   async upsert({
     id: providedId = null,
     data,
-    fields
+    fields,
+    conditions = []
   }) {
     // eslint-disable-next-line no-underscore-dangle
     this._before();
     // eslint-disable-next-line no-underscore-dangle
     const id = this._generateId(data, providedId);
-    await this.mapper.put(new this.MapperClass({ ...data, id }));
+    await this.mapper.put(new this.MapperClass({ ...data, id }), Object.assign(
+      {},
+      conditions.length === 0 ? {} : { condition: { type: 'And', conditions: [...conditions] } }
+    ));
     // eslint-disable-next-line no-underscore-dangle
     await this._callback('upsert', id);
     return this.get({ id, fields });

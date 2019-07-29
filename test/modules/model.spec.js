@@ -361,7 +361,20 @@ describe('Dynamo Sdk Tests', () => {
       expect(result).to.deep.equal({ keywords: ['keyword1', 'keyword2'] });
       checkCallbackLog(['upsert', 'get'], 'aca3ddb278ff58d7ac44cebd96802b3e66528910');
       await nockDone();
-    });
+    }).timeout(55555);
+
+    it('Testing Upsert With Conditions', async () => {
+      const nockDone = await new Promise(resolve => nockBack('model/upsertWithConditions.json', {}, resolve));
+      const result = await defaultModel.upsert({
+        id: 'uuid',
+        data: { title: 'new-title' },
+        fields: ['keywords'],
+        conditions: [{ subject: 'title', type: 'NotEquals', object: 'title' }]
+      });
+      expect(result).to.deep.equal({ keywords: ['keyword1', 'keyword2'] });
+      checkCallbackLog(['upsert', 'get']);
+      await nockDone();
+    }).timeout(55555);
   });
 
   describe('Testing Delete', () => {
