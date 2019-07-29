@@ -40,9 +40,10 @@
     "body": {
       "TableName": "dy-alchemy-table",
       "ExpressionAttributeNames": {
-        "#attr0": "keywords"
+        "#attr0": "keywords",
+        "#attr1": "id"
       },
-      "ProjectionExpression": "#attr0",
+      "ProjectionExpression": "#attr0, #attr1",
       "Key": {
         "id": {
           "S": "uuid"
@@ -53,6 +54,9 @@
     "status": 200,
     "response": {
       "Item": {
+        "id": {
+          "S": "uuid"
+        },
         "keywords": {
           "L": [
             {
