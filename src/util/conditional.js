@@ -52,6 +52,30 @@ const validate = (condition) => {
 };
 module.exports.validate = validate;
 
+const extract = condition => ({
+  Equals: () => [condition.subject],
+  NotEquals: () => [condition.subject],
+  LessThan: () => [condition.subject],
+  LessThanOrEqualTo: () => [condition.subject],
+  GreaterThan: () => [condition.subject],
+  GreaterThanOrEqualTo: () => [condition.subject],
+  Between: () => [condition.subject],
+  Membership: () => [condition.subject],
+  Not: () => extract(condition.condition),
+  And: () => condition.conditions.reduce((p, cond) => {
+    extract(cond).forEach(e => p.push(e));
+    return p;
+  }, []),
+  Or: () => condition.conditions.reduce((p, cond) => {
+    extract(cond).forEach(e => p.push(e));
+    return p;
+  }, []),
+  Function: () => {
+    throw new ConditionNotImplemented();
+  }
+})[condition.type]();
+module.exports.extract = extract;
+
 const evaluate = (condition, object) => ({
   Equals: () => object[condition.subject] === condition.object,
   NotEquals: () => object[condition.subject] !== condition.object,
@@ -70,21 +94,3 @@ const evaluate = (condition, object) => ({
   }
 })[condition.type]();
 module.exports.evaluate = evaluate;
-
-const extract = condition => ({
-  Equals: () => [condition.subject],
-  NotEquals: () => [condition.subject],
-  LessThan: () => [condition.subject],
-  LessThanOrEqualTo: () => [condition.subject],
-  GreaterThan: () => [condition.subject],
-  GreaterThanOrEqualTo: () => [condition.subject],
-  Between: () => [condition.subject],
-  Membership: () => [condition.subject],
-  Not: () => extract(condition.condition),
-  And: () => [...condition.conditions.map(cond => extract(cond))],
-  Or: () => [...condition.conditions.map(cond => extract(cond))],
-  Function: () => {
-    throw new ConditionNotImplemented();
-  }
-})[condition.type]();
-module.exports.extract = extract;
