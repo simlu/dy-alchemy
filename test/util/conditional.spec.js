@@ -122,7 +122,7 @@ describe('Testing conditional.js', () => {
       })).to.equal(true);
     });
 
-    it('Testing eval "Function"', () => {
+    it('Testing eval "Function"', (done) => {
       try {
         evaluate({
           subject: 'id',
@@ -134,10 +134,11 @@ describe('Testing conditional.js', () => {
       } catch (err) {
         expect(err).instanceOf(ConditionNotImplemented);
         expect(err.message).to.equal('Condition not implemented');
+        done();
       }
     });
 
-    it('Testing eval "Default"', () => {
+    it('Testing eval "Default"', (done) => {
       try {
         evaluate({
           subject: 'id',
@@ -149,19 +150,12 @@ describe('Testing conditional.js', () => {
       } catch (err) {
         expect(err).instanceOf(UnknownConditionType);
         expect(err.message).to.equal('Unknown condition type "Default" provided');
+        done();
       }
     });
   });
 
   describe('Testing extract', () => {
-    it('Testing extract "Equals"', () => {
-      expect(extract({
-        subject: 'id',
-        type: 'Equals',
-        object: '56629a41-b24b-42c6-9f02-277412e96d25'
-      })).to.deep.equal(['id']);
-    });
-
     it('Testing extract "Membership"', () => {
       expect(extract({
         subject: 'id',
@@ -183,15 +177,6 @@ describe('Testing conditional.js', () => {
       })).to.deep.equal(['id']);
     });
 
-    it('Testing extract "Or"', () => {
-      expect(extract({
-        subject: 'id',
-        type: 'Or',
-        object: '56629a41-b24b-42c6-9f02-277412e96d25',
-        conditions: [{ type: 'Equals', subject: 'id' }]
-      })).to.deep.equal([['id']]);
-    });
-
     it('Testing extract "And"', () => {
       expect(extract({
         subject: 'id',
@@ -200,31 +185,33 @@ describe('Testing conditional.js', () => {
         conditions: [{ type: 'Equals', subject: 'id' }]
       })).to.deep.equal([['id']]);
     });
-  });
 
-  it('Testing extract "Function"', () => {
-    try {
-      extract({
-        subject: 'id',
-        type: 'Function',
-        object: '56629a41-b24b-42c6-9f02-277412e96d25'
-      });
-    } catch (err) {
-      expect(err).instanceOf(ConditionNotImplemented);
-      expect(err.message).to.equal('Condition not implemented');
-    }
-  });
+    it('Testing extract "Function"', (done) => {
+      try {
+        extract({
+          subject: 'id',
+          type: 'Function',
+          object: '56629a41-b24b-42c6-9f02-277412e96d25'
+        });
+      } catch (err) {
+        expect(err).instanceOf(ConditionNotImplemented);
+        expect(err.message).to.equal('Condition not implemented');
+        done();
+      }
+    });
 
-  it('Testing extract "Default"', () => {
-    try {
-      extract({
-        subject: 'id',
-        type: 'Default',
-        object: '56629a41-b24b-42c6-9f02-277412e96d25'
-      });
-    } catch (err) {
-      expect(err).instanceOf(UnknownConditionType);
-      expect(err.message).to.equal('Unknown condition type "Default" provided');
-    }
+    it('Testing extract "Default"', (done) => {
+      try {
+        extract({
+          subject: 'id',
+          type: 'Default',
+          object: '56629a41-b24b-42c6-9f02-277412e96d25'
+        });
+      } catch (err) {
+        expect(err).instanceOf(UnknownConditionType);
+        expect(err.message).to.equal('Unknown condition type "Default" provided');
+        done();
+      }
+    });
   });
 });
