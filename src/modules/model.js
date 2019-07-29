@@ -74,6 +74,21 @@ class Model {
     });
   }
 
+  // eslint-disable-next-line no-underscore-dangle
+  _generateId(data, providedId) {
+    if ((providedId === null) === (this.primaryKeys === null)) {
+      throw new CannotProvideBothIdAndPrimaryKeys();
+    }
+    if (this.primaryKeys !== null && this.primaryKeys.some(k => data[k] === undefined)) {
+      throw new IncompletePrimaryKey();
+    }
+    return providedId !== null
+      ? providedId
+      : objectHash(this.primaryKeys
+        .sort()
+        .reduce((prev, cur) => Object.assign(prev, { [cur]: data[cur] }), {}));
+  }
+
   async get({ id, fields }) {
     // eslint-disable-next-line no-underscore-dangle
     this._before();
@@ -99,19 +114,10 @@ class Model {
     data,
     fields
   }) {
-    if ((providedId === null) === (this.primaryKeys === null)) {
-      throw new CannotProvideBothIdAndPrimaryKeys();
-    }
-    if (this.primaryKeys !== null && this.primaryKeys.some(k => data[k] === undefined)) {
-      throw new IncompletePrimaryKey();
-    }
-    const id = providedId !== null
-      ? providedId
-      : objectHash(this.primaryKeys
-        .sort()
-        .reduce((prev, cur) => Object.assign(prev, { [cur]: data[cur] }), {}));
     // eslint-disable-next-line no-underscore-dangle
     this._before();
+    // eslint-disable-next-line no-underscore-dangle
+    const id = this._generateId(data, providedId);
     try {
       await this.mapper.put(new this.MapperClass({ ...data, id }), {
         condition: {
@@ -158,6 +164,21 @@ class Model {
     }
     // eslint-disable-next-line no-underscore-dangle
     await this._callback('update', id);
+    return this.get({ id, fields });
+  }
+
+  async upsert({
+    id: providedId = null,
+    data,
+    fields
+  }) {
+    // eslint-disable-next-line no-underscore-dangle
+    this._before();
+    // eslint-disable-next-line no-underscore-dangle
+    const id = this._generateId(data, providedId);
+    await this.mapper.put(new this.MapperClass({ ...data, id }));
+    // eslint-disable-next-line no-underscore-dangle
+    await this._callback('upsert', id);
     return this.get({ id, fields });
   }
 

@@ -336,6 +336,34 @@ describe('Dynamo Sdk Tests', () => {
     });
   });
 
+  describe('Testing Upsert', () => {
+    it('Testing Upsert Base Case', async () => {
+      const nockDone = await new Promise(resolve => nockBack('model/upsert.json', {}, resolve));
+      const result = await defaultModel.upsert({
+        id: 'uuid',
+        data: { keywords: ['keyword1', 'keyword2'] },
+        fields: ['keywords']
+      });
+      expect(result).to.deep.equal({ keywords: ['keyword1', 'keyword2'] });
+      checkCallbackLog(['upsert', 'get']);
+      await nockDone();
+    });
+
+    it('Testing Upsert with Automatic Id', async () => {
+      const nockDone = await new Promise(resolve => nockBack('model/upsertAutoId.json', {}, resolve));
+      const result = await autoIdModel.upsert({
+        data: {
+          keywords: ['keyword1', 'keyword2'],
+          title: 'title'
+        },
+        fields: ['keywords']
+      });
+      expect(result).to.deep.equal({ keywords: ['keyword1', 'keyword2'] });
+      checkCallbackLog(['upsert', 'get'], 'aca3ddb278ff58d7ac44cebd96802b3e66528910');
+      await nockDone();
+    });
+  });
+
   describe('Testing Delete', () => {
     it('Testing Delete Base Case', async () => {
       const nockDone = await new Promise(resolve => nockBack('model/delete.json', {}, resolve));
