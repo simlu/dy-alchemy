@@ -1,8 +1,13 @@
 const assert = require('assert');
 const get = require('lodash.get');
 const AWS = require('aws-sdk-wrap');
+const objectHash = require('object-hash');
 const { DataMapper, DynamoDbSchema, DynamoDbTable } = require('@aws/dynamodb-data-mapper');
-const { DefaultItemNotFoundError, DefaultItemExistsError } = require('./errors');
+const {
+  DefaultItemNotFoundError, DefaultItemExistsError,
+  CannotUpdatePrimaryKeys, CannotProvideBothIdAndPrimaryKeys,
+  IncompletePrimaryKey
+} = require('./errors');
 const { fromCursor, buildPageObject } = require('../util/paging');
 
 const DefaultItemNotFound = ({ id }) => new DefaultItemNotFoundError(id);
@@ -19,12 +24,13 @@ class Model {
       ItemExists = DefaultItemExists
     } = {},
     callback = () => {},
-    idProvider = null
+    primaryKeys = null
   }) {
     assert(get(schema, 'id.keyType') === 'HASH', '"id" must have "Hash" keyType.');
     assert(Object.entries(schema)
       .filter(([k, _]) => k !== 'id')
       .every(([_, v]) => v.keyType === undefined), '"keyType" only allowed on "id".');
+    assert(primaryKeys === null || Array.isArray(primaryKeys));
     class MapperClass {
       constructor(kwargs) {
         Object.assign(this, kwargs);
@@ -42,7 +48,7 @@ class Model {
     this.ItemNotFound = ItemNotFound;
     this.ItemExists = ItemExists;
     this.callback = callback;
-    this.idProvider = idProvider;
+    this.primaryKeys = primaryKeys;
   }
 
   // eslint-disable-next-line no-underscore-dangle
@@ -93,8 +99,17 @@ class Model {
     data,
     fields
   }) {
-    assert(providedId !== null || this.idProvider !== null);
-    const id = providedId !== null ? providedId : this.idProvider(data);
+    if ((providedId === null) === (this.primaryKeys === null)) {
+      throw new CannotProvideBothIdAndPrimaryKeys();
+    }
+    if (this.primaryKeys !== null && this.primaryKeys.some(k => data[k] === undefined)) {
+      throw new IncompletePrimaryKey();
+    }
+    const id = providedId !== null
+      ? providedId
+      : objectHash(this.primaryKeys
+        .sort()
+        .reduce((prev, cur) => Object.assign(prev, { [cur]: data[cur] }), {}));
     // eslint-disable-next-line no-underscore-dangle
     this._before();
     try {
@@ -121,6 +136,9 @@ class Model {
   }) {
     // eslint-disable-next-line no-underscore-dangle
     this._before();
+    if (this.primaryKeys !== null && this.primaryKeys.some(k => data[k] !== undefined)) {
+      throw new CannotUpdatePrimaryKeys();
+    }
     try {
       await this.mapper.update(new this.MapperClass({ ...data, id }), {
         condition: {

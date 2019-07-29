@@ -11,12 +11,12 @@
       },
       "ExpressionAttributeValues": {
         ":val1": {
-          "S": "providedId"
+          "S": "aca3ddb278ff58d7ac44cebd96802b3e66528910"
         }
       },
       "Item": {
         "id": {
-          "S": "providedId"
+          "S": "aca3ddb278ff58d7ac44cebd96802b3e66528910"
         },
         "keywords": {
           "L": [
@@ -27,6 +27,9 @@
               "S": "keyword2"
             }
           ]
+        },
+        "title": {
+          "S": "title"
         }
       }
     },
@@ -45,7 +48,7 @@
       "ProjectionExpression": "#attr0",
       "Key": {
         "id": {
-          "S": "providedId"
+          "S": "aca3ddb278ff58d7ac44cebd96802b3e66528910"
         }
       },
       "ConsistentRead": true
