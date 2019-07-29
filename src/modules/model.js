@@ -182,10 +182,10 @@ class Model {
     this._before();
     // eslint-disable-next-line no-underscore-dangle
     const id = this._generateId(data, providedId);
-    await this.mapper.put(new this.MapperClass({ ...data, id }), Object.assign(
-      {},
+    await this.mapper.put(
+      new this.MapperClass({ ...data, id }),
       conditions.length === 0 ? {} : { condition: { type: 'And', conditions: [...conditions] } }
-    ));
+    );
     // eslint-disable-next-line no-underscore-dangle
     await this._callback('upsert', id);
     return this.get({ id, fields });
