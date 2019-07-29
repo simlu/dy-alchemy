@@ -23,8 +23,7 @@ class Model {
       ItemNotFound = DefaultItemNotFound,
       ItemExists = DefaultItemExists
     } = {},
-    callback = () => {
-    },
+    callback = () => {},
     primaryKeys = null
   }) {
     assert(get(schema, 'id.keyType') === 'HASH', '"id" must have "Hash" keyType.');
@@ -38,7 +37,6 @@ class Model {
         Object.assign(this, kwargs);
       }
     }
-
     Object.defineProperties(MapperClass.prototype, {
       [DynamoDbTable]: { value: tableName },
       [DynamoDbSchema]: { value: schema }
