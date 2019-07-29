@@ -69,10 +69,10 @@ describe('Testing conditional.js', () => {
         subject: 'id',
         type: 'Between',
         object: '56629a41-b24b-42c6-9f02-277412e96d25',
-        lowerBound: '409688ba-e6d9-48c9-942d-f03c6f82778d',
-        upperBound: 'c3283561-408a-44d2-91d0-b0115ba9773a'
+        lowerBound: 1,
+        upperBound: 3
       }, {
-        id: '56629a41-b24b-42c6-9f02-277412e96d25',
+        id: 2,
         subject: 'id'
       })).to.equal(true);
     });
