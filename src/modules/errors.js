@@ -19,12 +19,12 @@ class InvalidPageCursor extends Error {
 }
 module.exports.InvalidPageCursor = InvalidPageCursor;
 
-class UnknownConditionType extends Error {
-  constructor(type) {
-    super(`Unknown condition type "${type}" provided`);
+class InvalidCondition extends Error {
+  constructor(context) {
+    super(`Invalid condition provided\n${context}`);
   }
 }
-module.exports.UnknownConditionType = UnknownConditionType;
+module.exports.InvalidCondition = InvalidCondition;
 
 class ConditionNotImplemented extends Error {
   constructor() {

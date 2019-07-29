@@ -1,6 +1,6 @@
 const expect = require('chai').expect;
-const { evaluate, extract } = require('../../src/util/conditional');
-const { UnknownConditionType, ConditionNotImplemented } = require('../../src/modules/errors');
+const { evaluate, extract, validate } = require('../../src/util/conditional');
+const { InvalidCondition, ConditionNotImplemented } = require('../../src/modules/errors');
 
 describe('Testing conditional.js', () => {
   describe('Testing evaluate', () => {
@@ -68,12 +68,10 @@ describe('Testing conditional.js', () => {
       expect(evaluate({
         subject: 'id',
         type: 'Between',
-        object: '56629a41-b24b-42c6-9f02-277412e96d25',
         lowerBound: 1,
         upperBound: 3
       }, {
-        id: 2,
-        subject: 'id'
+        id: 2
       })).to.equal(true);
     });
 
@@ -81,20 +79,17 @@ describe('Testing conditional.js', () => {
       expect(evaluate({
         subject: 'id',
         type: 'Membership',
-        object: '56629a41-b24b-42c6-9f02-277412e96d25',
-        values: ['id']
+        values: ['56629a41-b24b-42c6-9f02-277412e96d25']
       }, {
         id: '56629a41-b24b-42c6-9f02-277412e96d25',
         subject: 'id'
-      })).to.equal(false);
+      })).to.equal(true);
     });
 
     it('Testing eval "Not"', () => {
       expect(evaluate({
-        subject: 'id',
         type: 'Not',
-        object: '56629a41-b24b-42c6-9f02-277412e96d25',
-        condition: { type: 'Equals' }
+        condition: { object: '56629a41-b24b-42c6-9f02-277412e96d25', type: 'Equals', subject: 'id' }
       }, {
         id: '56629a41-b24b-42c6-9f02-277412e96d25'
       })).to.equal(false);
@@ -102,10 +97,8 @@ describe('Testing conditional.js', () => {
 
     it('Testing eval "And"', () => {
       expect(evaluate({
-        subject: 'id',
         type: 'And',
-        object: '56629a41-b24b-42c6-9f02-277412e96d25',
-        conditions: [{ type: 'Equals' }]
+        conditions: [{ object: '56629a41-b24b-42c6-9f02-277412e96d25', type: 'Equals', subject: 'id' }]
       }, {
         id: '56629a41-b24b-42c6-9f02-277412e96d25'
       })).to.equal(true);
@@ -113,10 +106,8 @@ describe('Testing conditional.js', () => {
 
     it('Testing eval "Or"', () => {
       expect(evaluate({
-        subject: 'id',
         type: 'Or',
-        object: '56629a41-b24b-42c6-9f02-277412e96d25',
-        conditions: [{ type: 'Equals' }]
+        conditions: [{ object: '56629a41-b24b-42c6-9f02-277412e96d25', type: 'Equals', subject: 'id' }]
       }, {
         id: '56629a41-b24b-42c6-9f02-277412e96d25'
       })).to.equal(true);
@@ -127,29 +118,13 @@ describe('Testing conditional.js', () => {
         evaluate({
           subject: 'id',
           type: 'Function',
-          object: '56629a41-b24b-42c6-9f02-277412e96d25'
+          name: 'attribute_exists'
         }, {
           id: '56629a41-b24b-42c6-9f02-277412e96d25'
         });
       } catch (err) {
         expect(err).instanceOf(ConditionNotImplemented);
         expect(err.message).to.equal('Condition not implemented');
-        done();
-      }
-    });
-
-    it('Testing eval "Default"', (done) => {
-      try {
-        evaluate({
-          subject: 'id',
-          type: 'Default',
-          object: '56629a41-b24b-42c6-9f02-277412e96d25'
-        }, {
-          id: '56629a41-b24b-42c6-9f02-277412e96d25'
-        });
-      } catch (err) {
-        expect(err).instanceOf(UnknownConditionType);
-        expect(err.message).to.equal('Unknown condition type "Default" provided');
         done();
       }
     });
@@ -162,9 +137,7 @@ describe('Testing conditional.js', () => {
       'LessThan',
       'LessThanOrEqualTo',
       'GreaterThan',
-      'GreaterThanOrEqualTo',
-      'Between',
-      'Membership'
+      'GreaterThanOrEqualTo'
     ]
       .forEach((c) => {
         it(`Testing extract "${c}"`, () => {
@@ -176,26 +149,35 @@ describe('Testing conditional.js', () => {
         });
       });
 
-    it('Testing extract "Not"', () => {
+    it('Testing extract "Between"', () => {
       expect(extract({
         subject: 'id',
+        type: 'Between',
+        lowerBound: '56629a41-b24b-42c6-9f02-277412e96d25',
+        upperBound: '56629a41-b24b-42c6-9f02-277412e96d25'
+      })).to.deep.equal(['id']);
+    });
+
+    it('Testing extract "Membership"', () => {
+      expect(extract({
+        subject: 'id',
+        type: 'Membership',
+        values: ['56629a41-b24b-42c6-9f02-277412e96d25']
+      })).to.deep.equal(['id']);
+    });
+
+    it('Testing extract "Not"', () => {
+      expect(extract({
         type: 'Not',
-        object: '56629a41-b24b-42c6-9f02-277412e96d25',
-        condition: {
-          subject: 'id',
-          type: 'Equals',
-          object: '56629a41-b24b-42c6-9f02-277412e96d25'
-        }
+        condition: { object: '56629a41-b24b-42c6-9f02-277412e96d25', type: 'Equals', subject: 'id' }
       })).to.deep.equal(['id']);
     });
 
     ['And', 'Or'].forEach((c) => {
       it(`Testing extract "${c}"`, () => {
         expect(extract({
-          subject: 'id',
           type: `${c}`,
-          object: '56629a41-b24b-42c6-9f02-277412e96d25',
-          conditions: [{ type: 'Equals', subject: 'id' }]
+          conditions: [{ object: '56629a41-b24b-42c6-9f02-277412e96d25', type: 'Equals', subject: 'id' }]
         })).to.deep.equal([['id']]);
       });
     });
@@ -205,7 +187,8 @@ describe('Testing conditional.js', () => {
         extract({
           subject: 'id',
           type: 'Function',
-          object: '56629a41-b24b-42c6-9f02-277412e96d25'
+          name: 'contains',
+          expected: '56629a41'
         });
       } catch (err) {
         expect(err).instanceOf(ConditionNotImplemented);
@@ -213,19 +196,59 @@ describe('Testing conditional.js', () => {
         done();
       }
     });
+  });
 
-    it('Testing extract "Default"', (done) => {
+  describe('Testing validate', () => {
+    it('Testing validate unknown type', (done) => {
       try {
-        extract({
+        validate({
           subject: 'id',
           type: 'Default',
           object: '56629a41-b24b-42c6-9f02-277412e96d25'
+        }, {
+          id: '56629a41-b24b-42c6-9f02-277412e96d25'
         });
       } catch (err) {
-        expect(err).instanceOf(UnknownConditionType);
-        expect(err.message).to.equal('Unknown condition type "Default" provided');
+        expect(err).instanceOf(InvalidCondition);
+        expect(err.message).to.contain('Invalid condition provided');
         done();
       }
+    });
+
+    it('Testing validate "Equals"', () => {
+      expect(() => validate({
+        subject: 'id',
+        type: 'Equals',
+        object: '56629a41-b24b-42c6-9f02-277412e96d25'
+      })).to.not.throw();
+    });
+
+    it('Testing validate "Not And Simple', () => {
+      expect(() => validate({
+        type: 'Not',
+        condition: {
+          type: 'And',
+          conditions: [{
+            subject: 'id',
+            type: 'Equals',
+            object: '56629a41-b24b-42c6-9f02-277412e96d25'
+          }]
+        }
+      })).to.not.throw();
+    });
+
+    it('Testing validate "Or Not Simple', () => {
+      expect(() => validate({
+        type: 'Or',
+        conditions: [{
+          type: 'Not',
+          condition: {
+            subject: 'id',
+            type: 'Equals',
+            object: '56629a41-b24b-42c6-9f02-277412e96d25'
+          }
+        }]
+      })).to.not.throw();
     });
   });
 });
