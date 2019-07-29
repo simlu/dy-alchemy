@@ -77,10 +77,10 @@ class Model {
 
   // eslint-disable-next-line no-underscore-dangle
   _generateId(data, providedId) {
-    assert(typeof data === 'object' && !Array.isArray(data));
+    assert(data instanceof Object && !Array.isArray(data), data);
     assert(providedId === null || typeof providedId === 'string');
     assert(this.primaryKeys === null || Array.isArray(this.primaryKeys));
-    if ((providedId === null) === (!Array.isArray(this.primaryKeys))) {
+    if ((typeof providedId !== 'string') === (!Array.isArray(this.primaryKeys))) {
       throw new MustProvideIdXorPrimaryKeys();
     }
     if (Array.isArray(this.primaryKeys) && this.primaryKeys.some(k => data[k] === undefined)) {
