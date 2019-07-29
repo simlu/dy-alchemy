@@ -32,3 +32,24 @@ class ConditionNotImplemented extends Error {
   }
 }
 module.exports.ConditionNotImplemented = ConditionNotImplemented;
+
+class CannotUpdatePrimaryKeys extends Error {
+  constructor() {
+    super('Cannot update "primaryKeys" attributes.');
+  }
+}
+module.exports.CannotUpdatePrimaryKeys = CannotUpdatePrimaryKeys;
+
+class MustProvideIdXorPrimaryKeys extends Error {
+  constructor() {
+    super('Provide either "primaryKeys" or "id", but not both.');
+  }
+}
+module.exports.MustProvideIdXorPrimaryKeys = MustProvideIdXorPrimaryKeys;
+
+class IncompletePrimaryKey extends Error {
+  constructor() {
+    super('All keys in "primaryKey" must be provided.');
+  }
+}
+module.exports.IncompletePrimaryKey = IncompletePrimaryKey;

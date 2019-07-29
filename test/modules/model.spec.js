@@ -2,7 +2,11 @@ const path = require('path');
 const expect = require('chai').expect;
 const nockBack = require('nock').back;
 const DynamoModel = require('../../src/modules/model');
-const { DefaultItemExistsError, DefaultItemNotFoundError, InvalidPageCursor } = require('../../src/modules/errors');
+const {
+  DefaultItemExistsError, DefaultItemNotFoundError,
+  InvalidPageCursor,
+  CannotUpdatePrimaryKeys, IncompletePrimaryKey, MustProvideIdXorPrimaryKeys
+} = require('../../src/modules/errors');
 
 
 class CustomItemExistsError extends Error {
@@ -36,7 +40,6 @@ const schema = {
     memberType: { type: 'String' }
   }
 };
-
 const awsConfig = {
   region: 'us-west-2',
   accessKeyId: 'XXXXXXXXXXXXXXXXXXXX',
@@ -63,6 +66,16 @@ describe('Dynamo Sdk Tests', () => {
       ItemNotFound: CustomItemNotFound
     }
   });
+  const autoIdModel = new DynamoModel({
+    modelName: 'default',
+    tableName: 'dy-alchemy-table',
+    schema,
+    awsConfig,
+    callback: (args) => {
+      callbackLog.push(args);
+    },
+    primaryKeys: ['keywords', 'title']
+  });
 
   before(() => {
     nockBack.setMode('record');
@@ -87,9 +100,9 @@ describe('Dynamo Sdk Tests', () => {
     }
   });
 
-  const checkCallbackLog = (actionTypes) => {
+  const checkCallbackLog = (actionTypes, id = 'uuid') => {
     expect(callbackLog).to.deep.equal(actionTypes.map(actionType => ({
-      id: 'uuid',
+      id,
       modelName: 'default',
       tableName: 'dy-alchemy-table',
       actionType
@@ -158,6 +171,51 @@ describe('Dynamo Sdk Tests', () => {
       expect(result).to.deep.equal({ keywords: ['keyword1', 'keyword2'] });
       checkCallbackLog(['create', 'get']);
       await nockDone();
+    });
+
+    it('Testing Create with Automatic Id', async () => {
+      const nockDone = await new Promise(resolve => nockBack('model/createAutoId.json', {}, resolve));
+      const result = await autoIdModel.create({
+        data: {
+          keywords: ['keyword1', 'keyword2'],
+          title: 'title'
+        },
+        fields: ['keywords']
+      });
+      expect(result).to.deep.equal({ keywords: ['keyword1', 'keyword2'] });
+      checkCallbackLog(['create', 'get'], 'aca3ddb278ff58d7ac44cebd96802b3e66528910');
+      await nockDone();
+    });
+
+    it('Testing Create IncompletePrimaryKey', async () => {
+      const nockDone = await new Promise(resolve => nockBack('model/createIncompletePrimaryKey.json', {}, resolve));
+      try {
+        await autoIdModel.create({
+          data: {
+            keywords: ['keyword1', 'keyword2']
+          },
+          fields: ['keywords']
+        });
+      } catch (err) {
+        expect(err).instanceof(IncompletePrimaryKey);
+        await nockDone();
+      }
+    });
+
+    it('Testing Create Both Provided Id and Primary Key', async () => {
+      const nockDone = await new Promise(resolve => nockBack('model/createProvidedIdAndPrimaryKey.json', {}, resolve));
+      try {
+        await autoIdModel.create({
+          id: 'uuid',
+          data: {
+            keywords: ['keyword1', 'keyword2']
+          },
+          fields: ['keywords']
+        });
+      } catch (err) {
+        expect(err).instanceof(MustProvideIdXorPrimaryKeys);
+        await nockDone();
+      }
     });
 
     it('Testing Create Item Exists Custom', async () => {
@@ -233,6 +291,20 @@ describe('Dynamo Sdk Tests', () => {
       await nockDone();
     });
 
+    it('Testing Update Primary Key', async () => {
+      const nockDone = await new Promise(resolve => nockBack('model/updatePrimaryKey.json', {}, resolve));
+      try {
+        await autoIdModel.update({
+          id: 'uuid',
+          data: { keywords: ['keyword1'] },
+          fields: ['keywords']
+        });
+      } catch (err) {
+        expect(err).instanceof(CannotUpdatePrimaryKeys);
+        await nockDone();
+      }
+    });
+
     it('Testing Update Not Found', async () => {
       const nockDone = await new Promise(resolve => nockBack('model/updateNotFound.json', {}, resolve));
       try {
@@ -262,6 +334,47 @@ describe('Dynamo Sdk Tests', () => {
         await nockDone();
       }
     });
+  });
+
+  describe('Testing Upsert', () => {
+    it('Testing Upsert Base Case', async () => {
+      const nockDone = await new Promise(resolve => nockBack('model/upsert.json', {}, resolve));
+      const result = await defaultModel.upsert({
+        id: 'uuid',
+        data: { keywords: ['keyword1', 'keyword2'] },
+        fields: ['keywords']
+      });
+      expect(result).to.deep.equal({ keywords: ['keyword1', 'keyword2'] });
+      checkCallbackLog(['upsert', 'get']);
+      await nockDone();
+    });
+
+    it('Testing Upsert with Automatic Id', async () => {
+      const nockDone = await new Promise(resolve => nockBack('model/upsertAutoId.json', {}, resolve));
+      const result = await autoIdModel.upsert({
+        data: {
+          keywords: ['keyword1', 'keyword2'],
+          title: 'title'
+        },
+        fields: ['keywords']
+      });
+      expect(result).to.deep.equal({ keywords: ['keyword1', 'keyword2'] });
+      checkCallbackLog(['upsert', 'get'], 'aca3ddb278ff58d7ac44cebd96802b3e66528910');
+      await nockDone();
+    }).timeout(55555);
+
+    it('Testing Upsert With Conditions', async () => {
+      const nockDone = await new Promise(resolve => nockBack('model/upsertWithConditions.json', {}, resolve));
+      const result = await defaultModel.upsert({
+        id: 'uuid',
+        data: { title: 'new-title' },
+        fields: ['keywords'],
+        conditions: [{ subject: 'title', type: 'NotEquals', object: 'title' }]
+      });
+      expect(result).to.deep.equal({ keywords: ['keyword1', 'keyword2'] });
+      checkCallbackLog(['upsert', 'get']);
+      await nockDone();
+    }).timeout(55555);
   });
 
   describe('Testing Delete', () => {
