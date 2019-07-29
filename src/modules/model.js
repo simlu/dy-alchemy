@@ -79,7 +79,6 @@ class Model {
   _generateId(data, providedId) {
     assert(data instanceof Object && !Array.isArray(data), data);
     assert(providedId === null || typeof providedId === 'string');
-    assert(this.primaryKeys === null || Array.isArray(this.primaryKeys));
     if ((typeof providedId !== 'string') === (!Array.isArray(this.primaryKeys))) {
       throw new MustProvideIdXorPrimaryKeys();
     }
