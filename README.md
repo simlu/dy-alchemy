@@ -51,7 +51,7 @@ _Params_
 * `awsConfig` _object_: Optional hard coded config passed to aws-sdk
 * `errorMap` _object_: Optional Key / Value map to allow custom errors
 * `callback` _function_: Optional hook after successful actions, `actionType` may be one of ['get', 'create', 'update', 'delete']
-* `primaryKeys` _function_: Optional list of keys to automatically generate an id. If provided, keys are required on object created.
+* `primaryKeys` _array<string>_: Optional list of keys to automatically generate an id. If provided, keys are required on object created.
 
 ### Model Methods
 
