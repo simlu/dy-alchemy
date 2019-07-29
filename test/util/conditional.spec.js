@@ -156,13 +156,25 @@ describe('Testing conditional.js', () => {
   });
 
   describe('Testing extract', () => {
-    it('Testing extract "Membership"', () => {
-      expect(extract({
-        subject: 'id',
-        type: 'Membership',
-        object: '56629a41-b24b-42c6-9f02-277412e96d25'
-      })).to.deep.equal(['id']);
-    });
+    [
+      'Equals',
+      'NotEquals',
+      'LessThan',
+      'LessThanOrEqualTo',
+      'GreaterThan',
+      'GreaterThanOrEqualTo',
+      'Between',
+      'Membership'
+    ]
+      .forEach((c) => {
+        it(`Testing extract "${c}"`, () => {
+          expect(extract({
+            subject: 'id',
+            type: `${c}`,
+            object: '56629a41-b24b-42c6-9f02-277412e96d25'
+          })).to.deep.equal(['id']);
+        });
+      });
 
     it('Testing extract "Not"', () => {
       expect(extract({
@@ -177,13 +189,15 @@ describe('Testing conditional.js', () => {
       })).to.deep.equal(['id']);
     });
 
-    it('Testing extract "And"', () => {
-      expect(extract({
-        subject: 'id',
-        type: 'And',
-        object: '56629a41-b24b-42c6-9f02-277412e96d25',
-        conditions: [{ type: 'Equals', subject: 'id' }]
-      })).to.deep.equal([['id']]);
+    ['And', 'Or'].forEach((c) => {
+      it(`Testing extract "${c}"`, () => {
+        expect(extract({
+          subject: 'id',
+          type: `${c}`,
+          object: '56629a41-b24b-42c6-9f02-277412e96d25',
+          conditions: [{ type: 'Equals', subject: 'id' }]
+        })).to.deep.equal([['id']]);
+      });
     });
 
     it('Testing extract "Function"', (done) => {
