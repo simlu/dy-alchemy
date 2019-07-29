@@ -38,7 +38,7 @@ const model = new Model({
   callback: (/* {
     id, modelName, tableName, actionType
   } */) => { /* ... */ },
-  idProvider: (/* data */) => { /* ... */ }
+  primaryKeys: []
 });
 model.get(/* ... */);
 ```
@@ -51,7 +51,7 @@ _Params_
 * `awsConfig` _object_: Optional hard coded config passed to aws-sdk
 * `errorMap` _object_: Optional Key / Value map to allow custom errors
 * `callback` _function_: Optional hook after successful actions, `actionType` may be one of ['get', 'create', 'update', 'delete']
-* `idProvider` _function_: Optional function to generate an id for a created model. Uses the data input to the `create` method as input
+* `primaryKeys` _function_: Optional list of keys to automatically generate an id. If provided, keys are required on object created.
 
 ### Model Methods
 
@@ -87,7 +87,7 @@ modelName.create({ id, data, fields });
 
 _Params_
 
-* `id` string: Id of model to create, must be unique. _Optional if idProvider configured_.
+* `id` string: Id of model to create, must be unique. _Optional if primaryKeys configured_.
 * `data` object: Data to populate dynamo tuple. _Important_: `id` is injected into `data`
 * `fields` array: Array of fields to request
 
@@ -104,6 +104,21 @@ _Params_
 
 * `id` string: Id of model to update
 * `data` object: Data to update
+* `fields` array: Array of fields to request
+
+#### Upsert
+
+Upserts object using [Dynamodb::PutItem](https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/DynamoDB.html#putItem-property)
+
+<!-- eslint-disable no-undef -->
+```js
+modelName.upsert({ id, data, fields });
+```
+
+_Params_
+
+* `id` string: Id of model to upsert. _Optional if primaryKeys configured_.
+* `data` object: Data to populate dynamo tuple. _Important_: `id` is injected into `data`
 * `fields` array: Array of fields to request
 
 #### Delete

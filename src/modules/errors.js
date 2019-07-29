@@ -45,7 +45,7 @@ class MustProvideIdOrPrimaryKeys extends Error {
     super('Provide either "primaryKeys" or "id", but not both.');
   }
 }
-module.exports.CannotProvideBothIdAndPrimaryKeys = MustProvideIdOrPrimaryKeys;
+module.exports.MustProvideIdOrPrimaryKeys = MustProvideIdOrPrimaryKeys;
 
 class IncompletePrimaryKey extends Error {
   constructor() {
