@@ -47,11 +47,34 @@ _Params_
 
 * `modelName` _string_: Name of model being accessed
 * `tableName` _string_: Name of Dynamo Table associated with model
-* `schema` _{ [string]: object }_: [DataMapper](https://github.com/awslabs/dynamodb-data-mapper-js/tree/master/packages/dynamodb-data-mapper) style schema
+* `schema` _{ [string]: object }_: Defined below
 * `awsConfig` _object_: Optional hard coded config passed to aws-sdk
 * `errorMap` _object_: Optional Key / Value map to allow custom errors
 * `callback` _function_: Optional hook after successful actions, `actionType` may be one of ['get', 'create', 'update', 'delete']
 * `primaryKeys` _array\<string\>_: Optional list of keys to automatically generate an id. If provided, keys are required on object created.
+
+### Schema
+
+[DataMapper](https://github.com/awslabs/dynamodb-data-mapper-js/tree/master/packages/dynamodb-data-mapper) style schema
+with support for `defaultValue`.
+
+Example:
+<!-- eslint-disable no-unused-vars -->
+```js
+const schema = {
+  id: {
+    type: 'String',
+    keyType: 'HASH'
+  },
+  isWatched: {
+    type: 'Boolean',
+    defaultValue: false
+  }
+};
+```
+
+*_Important: fields with `defaultValue` are assigned in application layer logic, and therefore
+should only be used in DynamoDB conditionals with caution._*
 
 ### Model Methods
 
