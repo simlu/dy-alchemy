@@ -38,6 +38,10 @@ const schema = {
   keywords: {
     type: 'List',
     memberType: { type: 'String' }
+  },
+  isWatched: {
+    type: 'Boolean',
+    defaultValue: false
   }
 };
 const awsConfig = {
@@ -114,6 +118,14 @@ describe('Dynamo Sdk Tests', () => {
       const nockDone = await new Promise(resolve => nockBack('model/get.json', {}, resolve));
       expect(await defaultModel.get({ id: 'uuid', fields: ['keywords'] }))
         .to.deep.equal({ keywords: ['keyword1', 'keyword2'] });
+      checkCallbackLog(['get']);
+      await nockDone();
+    });
+
+    it('Testing Get With Default Value', async () => {
+      const nockDone = await new Promise(resolve => nockBack('model/getWithDefaultValue.json', {}, resolve));
+      expect(await defaultModel.get({ id: 'uuid', fields: ['isWatched'] }))
+        .to.deep.equal({ isWatched: false });
       checkCallbackLog(['get']);
       await nockDone();
     });

@@ -52,6 +52,9 @@ class Model {
     this.ItemExists = ItemExists;
     this.callback = callback;
     this.primaryKeys = primaryKeys;
+    this.defaultValues = Object.entries(schema)
+      .filter(([key, value]) => value.defaultValue !== undefined)
+      .reduce((prev, [key, value]) => Object.assign(prev, { [key]: value.defaultValue }), {});
   }
 
   // eslint-disable-next-line no-underscore-dangle
@@ -104,9 +107,10 @@ class Model {
     };
     validate(condition);
     let resp;
+    const projection = Array.from(new Set(fields.concat(extract(condition))));
     try {
       resp = await this.mapper.get(new this.MapperClass({ id }), {
-        projection: Array.from(new Set(fields.concat(extract(condition)))),
+        projection,
         readConsistency: 'strong'
       });
     } catch (err) {
@@ -115,6 +119,11 @@ class Model {
       }
       throw err;
     }
+    projection.forEach((field) => {
+      if (resp[field] === undefined && this.defaultValues[field] !== undefined) {
+        resp[field] = this.defaultValues[field];
+      }
+    });
     if (evaluate(condition, resp) !== true) {
       throw this.ItemNotFound({ id, reason: 'conditional_check_failed' });
     }
