@@ -1,7 +1,7 @@
 const { InvalidPageCursor } = require('../modules/errors');
 
-const objectEncode = obj => Buffer.from(JSON.stringify(obj)).toString('base64');
-const objectDecode = base64 => JSON.parse(Buffer.from(base64, 'base64').toString('utf8'));
+const objectEncode = (obj) => Buffer.from(JSON.stringify(obj)).toString('base64');
+const objectDecode = (base64) => JSON.parse(Buffer.from(base64, 'base64').toString('utf8'));
 
 module.exports.fromCursor = (cursor) => {
   let cursorPayload = {};

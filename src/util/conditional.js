@@ -52,7 +52,7 @@ const validate = (condition) => {
 };
 module.exports.validate = validate;
 
-const extract = condition => ({
+const extract = (condition) => ({
   Equals: () => [condition.subject],
   NotEquals: () => [condition.subject],
   LessThan: () => [condition.subject],
@@ -63,11 +63,11 @@ const extract = condition => ({
   Membership: () => [condition.subject],
   Not: () => extract(condition.condition),
   And: () => condition.conditions.reduce((p, cond) => {
-    extract(cond).forEach(e => p.push(e));
+    extract(cond).forEach((e) => p.push(e));
     return p;
   }, []),
   Or: () => condition.conditions.reduce((p, cond) => {
-    extract(cond).forEach(e => p.push(e));
+    extract(cond).forEach((e) => p.push(e));
     return p;
   }, []),
   Function: () => {
@@ -87,8 +87,8 @@ const evaluate = (condition, object) => ({
     && object[condition.subject] <= condition.upperBound,
   Membership: () => condition.values.includes(object[condition.subject]),
   Not: () => !evaluate(condition.condition, object),
-  And: () => condition.conditions.map(cond => evaluate(cond, object)).every(e => e === true),
-  Or: () => condition.conditions.map(cond => evaluate(cond, object)).some(e => e === true),
+  And: () => condition.conditions.map((cond) => evaluate(cond, object)).every((e) => e === true),
+  Or: () => condition.conditions.map((cond) => evaluate(cond, object)).some((e) => e === true),
   Function: () => {
     throw new ConditionNotImplemented();
   }
