@@ -11,6 +11,7 @@ const {
 } = require('./errors');
 const { fromCursor, buildPageObject } = require('../util/paging');
 const { validate, extract, evaluate } = require('../util/conditional');
+const classGenerator = require('./class-generator');
 
 const DefaultItemNotFound = ({ id }) => new DefaultItemNotFoundError(id);
 const DefaultItemExists = ({ id }) => new DefaultItemExistsError(id);
@@ -34,11 +35,7 @@ class Model {
       .every(([_, v]) => v.keyType === undefined), '"keyType" only allowed on "id".');
     assert(primaryKeys === null || Array.isArray(primaryKeys));
 
-    class MapperClass {
-      constructor(kwargs) {
-        Object.assign(this, kwargs);
-      }
-    }
+    const MapperClass = classGenerator();
     Object.defineProperties(MapperClass.prototype, {
       [DynamoDbTable]: { value: tableName },
       [DynamoDbSchema]: { value: schema }
