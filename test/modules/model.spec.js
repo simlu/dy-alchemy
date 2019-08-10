@@ -105,7 +105,7 @@ describe('Dynamo Sdk Tests', () => {
   });
 
   const checkCallbackLog = (actionTypes, id = 'uuid') => {
-    expect(callbackLog).to.deep.equal(actionTypes.map(actionType => ({
+    expect(callbackLog).to.deep.equal(actionTypes.map((actionType) => ({
       id,
       modelName: 'default',
       tableName: 'dy-alchemy-table',
@@ -115,7 +115,7 @@ describe('Dynamo Sdk Tests', () => {
 
   describe('Testing Get', () => {
     it('Testing Get Base Case', async () => {
-      const nockDone = await new Promise(resolve => nockBack('model/get.json', {}, resolve));
+      const nockDone = await new Promise((resolve) => nockBack('model/get.json', {}, resolve));
       expect(await defaultModel.get({ id: 'uuid', fields: ['keywords'] }))
         .to.deep.equal({ keywords: ['keyword1', 'keyword2'] });
       checkCallbackLog(['get']);
@@ -123,7 +123,7 @@ describe('Dynamo Sdk Tests', () => {
     });
 
     it('Testing Get With Default Value', async () => {
-      const nockDone = await new Promise(resolve => nockBack('model/getWithDefaultValue.json', {}, resolve));
+      const nockDone = await new Promise((resolve) => nockBack('model/getWithDefaultValue.json', {}, resolve));
       expect(await defaultModel.get({ id: 'uuid', fields: ['isWatched'] }))
         .to.deep.equal({ isWatched: false });
       checkCallbackLog(['get']);
@@ -131,7 +131,7 @@ describe('Dynamo Sdk Tests', () => {
     });
 
     it('Testing Get Condition Not Matched', async () => {
-      const nockDone = await new Promise(resolve => nockBack('model/getConditionNotMatched.json', {}, resolve));
+      const nockDone = await new Promise((resolve) => nockBack('model/getConditionNotMatched.json', {}, resolve));
       try {
         await defaultModel.get({
           id: 'uuid',
@@ -149,14 +149,14 @@ describe('Dynamo Sdk Tests', () => {
     });
 
     it('Testing Get Custom Error Sdk (default callback coverage)', async () => {
-      const nockDone = await new Promise(resolve => nockBack('model/get.json', {}, resolve));
+      const nockDone = await new Promise((resolve) => nockBack('model/get.json', {}, resolve));
       const result = await customErrorModel.get({ id: 'uuid', fields: ['keywords'] });
       expect(result).to.deep.equal({ keywords: ['keyword1', 'keyword2'] });
       await nockDone();
     });
 
     it('Testing Get ItemNotFound Custom', async () => {
-      const nockDone = await new Promise(resolve => nockBack('model/getNotFoundCustom.json', {}, resolve));
+      const nockDone = await new Promise((resolve) => nockBack('model/getNotFoundCustom.json', {}, resolve));
       try {
         await customErrorModel.get({ id: 'uuid', fields: ['keywords'] });
       } catch (err) {
@@ -167,7 +167,7 @@ describe('Dynamo Sdk Tests', () => {
     });
 
     it('Testing Get ItemNotFound Default', async () => {
-      const nockDone = await new Promise(resolve => nockBack('model/getNotFoundDefault.json', {}, resolve));
+      const nockDone = await new Promise((resolve) => nockBack('model/getNotFoundDefault.json', {}, resolve));
       try {
         await defaultModel.get({ id: 'uuid', fields: ['keywords'] });
       } catch (err) {
@@ -179,7 +179,7 @@ describe('Dynamo Sdk Tests', () => {
     });
 
     it('Testing Get Error', async () => {
-      const nockDone = await new Promise(resolve => nockBack('model/getError.json', {}, resolve));
+      const nockDone = await new Promise((resolve) => nockBack('model/getError.json', {}, resolve));
       try {
         await defaultModel.get({ id: 'uuid', fields: ['keywords'] });
       } catch (err) {
@@ -192,7 +192,7 @@ describe('Dynamo Sdk Tests', () => {
 
   describe('Testing Create', () => {
     it('Testing Create Base Case', async () => {
-      const nockDone = await new Promise(resolve => nockBack('model/create.json', {}, resolve));
+      const nockDone = await new Promise((resolve) => nockBack('model/create.json', {}, resolve));
       const result = await defaultModel.create({
         id: 'uuid',
         data: { keywords: ['keyword1', 'keyword2'] },
@@ -204,7 +204,7 @@ describe('Dynamo Sdk Tests', () => {
     });
 
     it('Testing Create with Automatic Id', async () => {
-      const nockDone = await new Promise(resolve => nockBack('model/createAutoId.json', {}, resolve));
+      const nockDone = await new Promise((resolve) => nockBack('model/createAutoId.json', {}, resolve));
       const result = await autoIdModel.create({
         data: {
           keywords: ['keyword1', 'keyword2'],
@@ -218,7 +218,7 @@ describe('Dynamo Sdk Tests', () => {
     });
 
     it('Testing Create IncompletePrimaryKey', async () => {
-      const nockDone = await new Promise(resolve => nockBack('model/createIncompletePrimaryKey.json', {}, resolve));
+      const nockDone = await new Promise((resolve) => nockBack('model/createIncompletePrimaryKey.json', {}, resolve));
       try {
         await autoIdModel.create({
           data: {
@@ -233,7 +233,7 @@ describe('Dynamo Sdk Tests', () => {
     });
 
     it('Testing Create Both Provided Id and Primary Key', async () => {
-      const nockDone = await new Promise(resolve => nockBack('model/createProvidedIdAndPrimaryKey.json', {}, resolve));
+      const nockDone = await new Promise((resolve) => nockBack('model/createProvidedIdAndPrimaryKey.json', {}, resolve));
       try {
         await autoIdModel.create({
           id: 'uuid',
@@ -249,7 +249,7 @@ describe('Dynamo Sdk Tests', () => {
     });
 
     it('Testing Create Item Exists Custom', async () => {
-      const nockDone = await new Promise(resolve => nockBack('model/createItemExistsCustom.json', {}, resolve));
+      const nockDone = await new Promise((resolve) => nockBack('model/createItemExistsCustom.json', {}, resolve));
       try {
         await customErrorModel.create({
           id: 'uuid',
@@ -264,7 +264,7 @@ describe('Dynamo Sdk Tests', () => {
     });
 
     it('Testing Create Item Exists Default', async () => {
-      const nockDone = await new Promise(resolve => nockBack('model/createItemExistsDefault.json', {}, resolve));
+      const nockDone = await new Promise((resolve) => nockBack('model/createItemExistsDefault.json', {}, resolve));
       try {
         await defaultModel.create({
           id: 'uuid',
@@ -280,7 +280,7 @@ describe('Dynamo Sdk Tests', () => {
     });
 
     it('Testing Create Error', async () => {
-      const nockDone = await new Promise(resolve => nockBack('model/createError.json', {}, resolve));
+      const nockDone = await new Promise((resolve) => nockBack('model/createError.json', {}, resolve));
       try {
         await defaultModel.create({
           id: 'uuid',
@@ -297,7 +297,7 @@ describe('Dynamo Sdk Tests', () => {
 
   describe('Testing Update', () => {
     it('Testing Update Base Case', async () => {
-      const nockDone = await new Promise(resolve => nockBack('model/update.json', {}, resolve));
+      const nockDone = await new Promise((resolve) => nockBack('model/update.json', {}, resolve));
       const result = await defaultModel.update({
         id: 'uuid',
         data: { keywords: ['keyword1'] },
@@ -309,7 +309,7 @@ describe('Dynamo Sdk Tests', () => {
     });
 
     it('Testing Update with Condition', async () => {
-      const nockDone = await new Promise(resolve => nockBack('model/updateWithCondition.json', {}, resolve));
+      const nockDone = await new Promise((resolve) => nockBack('model/updateWithCondition.json', {}, resolve));
       const result = await defaultModel.update({
         id: 'uuid',
         data: { keywords: ['keyword1'] },
@@ -322,7 +322,7 @@ describe('Dynamo Sdk Tests', () => {
     });
 
     it('Testing Update Primary Key', async () => {
-      const nockDone = await new Promise(resolve => nockBack('model/updatePrimaryKey.json', {}, resolve));
+      const nockDone = await new Promise((resolve) => nockBack('model/updatePrimaryKey.json', {}, resolve));
       try {
         await autoIdModel.update({
           id: 'uuid',
@@ -336,7 +336,7 @@ describe('Dynamo Sdk Tests', () => {
     });
 
     it('Testing Update Not Found', async () => {
-      const nockDone = await new Promise(resolve => nockBack('model/updateNotFound.json', {}, resolve));
+      const nockDone = await new Promise((resolve) => nockBack('model/updateNotFound.json', {}, resolve));
       try {
         await defaultModel.update({
           id: 'uuid',
@@ -351,7 +351,7 @@ describe('Dynamo Sdk Tests', () => {
     });
 
     it('Testing Update Error', async () => {
-      const nockDone = await new Promise(resolve => nockBack('model/updateError.json', {}, resolve));
+      const nockDone = await new Promise((resolve) => nockBack('model/updateError.json', {}, resolve));
       try {
         await defaultModel.update({
           id: 'uuid',
@@ -368,7 +368,7 @@ describe('Dynamo Sdk Tests', () => {
 
   describe('Testing Upsert', () => {
     it('Testing Upsert Base Case', async () => {
-      const nockDone = await new Promise(resolve => nockBack('model/upsert.json', {}, resolve));
+      const nockDone = await new Promise((resolve) => nockBack('model/upsert.json', {}, resolve));
       const result = await defaultModel.upsert({
         id: 'uuid',
         data: { keywords: ['keyword1', 'keyword2'] },
@@ -380,7 +380,7 @@ describe('Dynamo Sdk Tests', () => {
     });
 
     it('Testing Upsert with Automatic Id', async () => {
-      const nockDone = await new Promise(resolve => nockBack('model/upsertAutoId.json', {}, resolve));
+      const nockDone = await new Promise((resolve) => nockBack('model/upsertAutoId.json', {}, resolve));
       const result = await autoIdModel.upsert({
         data: {
           keywords: ['keyword1', 'keyword2'],
@@ -394,7 +394,7 @@ describe('Dynamo Sdk Tests', () => {
     });
 
     it('Testing Upsert With Conditions', async () => {
-      const nockDone = await new Promise(resolve => nockBack('model/upsertWithConditions.json', {}, resolve));
+      const nockDone = await new Promise((resolve) => nockBack('model/upsertWithConditions.json', {}, resolve));
       const result = await defaultModel.upsert({
         id: 'uuid',
         data: { title: 'new-title' },
@@ -409,14 +409,14 @@ describe('Dynamo Sdk Tests', () => {
 
   describe('Testing Delete', () => {
     it('Testing Delete Base Case', async () => {
-      const nockDone = await new Promise(resolve => nockBack('model/delete.json', {}, resolve));
+      const nockDone = await new Promise((resolve) => nockBack('model/delete.json', {}, resolve));
       await defaultModel.delete({ id: 'uuid' });
       checkCallbackLog(['delete']);
       await nockDone();
     });
 
     it('Testing Delete with Condition', async () => {
-      const nockDone = await new Promise(resolve => nockBack('model/deleteWithCondition.json', {}, resolve));
+      const nockDone = await new Promise((resolve) => nockBack('model/deleteWithCondition.json', {}, resolve));
       await defaultModel.delete({
         id: 'uuid',
         conditions: [{ subject: 'title', type: 'Equals', object: 'title-name' }]
@@ -426,7 +426,7 @@ describe('Dynamo Sdk Tests', () => {
     });
 
     it('Testing Delete Not Found', async () => {
-      const nockDone = await new Promise(resolve => nockBack('model/deleteNotFound.json', {}, resolve));
+      const nockDone = await new Promise((resolve) => nockBack('model/deleteNotFound.json', {}, resolve));
       try {
         await defaultModel.delete({ id: 'uuid' });
       } catch (err) {
@@ -437,7 +437,7 @@ describe('Dynamo Sdk Tests', () => {
     });
 
     it('Testing Delete Error', async () => {
-      const nockDone = await new Promise(resolve => nockBack('model/deleteError.json', {}, resolve));
+      const nockDone = await new Promise((resolve) => nockBack('model/deleteError.json', {}, resolve));
       try {
         await defaultModel.delete({ id: 'uuid' });
       } catch (err) {
@@ -450,7 +450,7 @@ describe('Dynamo Sdk Tests', () => {
 
   describe('Testing List', () => {
     it('Testing List Base Case', async () => {
-      const nockDone = await new Promise(resolve => nockBack('model/list.json', {}, resolve));
+      const nockDone = await new Promise((resolve) => nockBack('model/list.json', {}, resolve));
       const result = await defaultModel.list({
         indexName: 'index-name',
         indexMap: { title: 'title', year: 1980 },
@@ -469,7 +469,7 @@ describe('Dynamo Sdk Tests', () => {
     });
 
     it('Testing List without Id', async () => {
-      const nockDone = await new Promise(resolve => nockBack('model/listWithoutId.json', {}, resolve));
+      const nockDone = await new Promise((resolve) => nockBack('model/listWithoutId.json', {}, resolve));
       const result = await defaultModel.list({
         indexName: 'index-name',
         indexMap: { title: 'title', year: 1980 },
@@ -488,7 +488,7 @@ describe('Dynamo Sdk Tests', () => {
     });
 
     it('Testing List with Paging', async () => {
-      const nockDone = await new Promise(resolve => nockBack('model/listWithPaging.json', {}, resolve));
+      const nockDone = await new Promise((resolve) => nockBack('model/listWithPaging.json', {}, resolve));
       const result = await defaultModel.list({
         indexName: 'index-name',
         indexMap: { title: 'title', year: 1980 },
@@ -514,7 +514,7 @@ describe('Dynamo Sdk Tests', () => {
     });
 
     it('Testing List with Invalid Cursor', async () => {
-      const nockDone = await new Promise(resolve => nockBack('model/listInvalidCursor.json', {}, resolve));
+      const nockDone = await new Promise((resolve) => nockBack('model/listInvalidCursor.json', {}, resolve));
       try {
         await defaultModel.list({
           indexName: 'index-name',

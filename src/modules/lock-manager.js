@@ -27,17 +27,17 @@ module.exports = (lockTable, {
   };
 
   return {
-    lock: lockName => new Promise((resolve, reject) => client()
+    lock: (lockName) => new Promise((resolve, reject) => client()
       .acquireLock(lockName, (err, lock) => {
         if (err) {
           return reject(err);
         }
-        lock.on('error', error => Promise.resolve(error)
-          .then(e => `Error: Failed to renew heartbeat for lock ${lockName}\n${e}`)
+        lock.on('error', (error) => Promise.resolve(error)
+          .then((e) => `Error: Failed to renew heartbeat for lock ${lockName}\n${e}`)
           // eslint-disable-next-line no-console
-          .then(e => get(awsLogger, 'error', console.log)(e)));
+          .then((e) => get(awsLogger, 'error', console.log)(e)));
         return resolve({
-          release: () => new Promise((res, rej) => lock.release(e => (e ? rej(e) : res()))),
+          release: () => new Promise((res, rej) => lock.release((e) => (e ? rej(e) : res()))),
           fencingToken: lock.fencingToken
         });
       }))

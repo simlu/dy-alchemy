@@ -87,7 +87,7 @@ class Model {
     if ((typeof providedId !== 'string') === (!Array.isArray(this.primaryKeys))) {
       throw new MustProvideIdXorPrimaryKeys();
     }
-    if (Array.isArray(this.primaryKeys) && this.primaryKeys.some(k => data[k] === undefined)) {
+    if (Array.isArray(this.primaryKeys) && this.primaryKeys.some((k) => data[k] === undefined)) {
       throw new IncompletePrimaryKey();
     }
     return typeof providedId === 'string'
@@ -177,7 +177,7 @@ class Model {
       ]
     };
     validate(condition);
-    if (Array.isArray(this.primaryKeys) && this.primaryKeys.some(k => data[k] !== undefined)) {
+    if (Array.isArray(this.primaryKeys) && this.primaryKeys.some((k) => data[k] !== undefined)) {
       throw new CannotUpdatePrimaryKeys();
     }
     try {
@@ -262,12 +262,13 @@ class Model {
       limit: queryLimit = limit,
       currentPage = null
     } = fromCursor(cursor);
-    const iterator = this.mapper.query(this.MapperClass, indexMap, Object.assign({
+    const iterator = this.mapper.query(this.MapperClass, indexMap, {
       indexName,
       projection: toQuery,
       scanIndexForward,
-      limit: queryLimit
-    }, lastEvaluatedKey === null ? {} : { startKey: lastEvaluatedKey }));
+      limit: queryLimit,
+      ...(lastEvaluatedKey === null ? {} : { startKey: lastEvaluatedKey })
+    });
     const payload = [];
     // eslint-disable-next-line no-restricted-syntax
     for await (const r of iterator) {
