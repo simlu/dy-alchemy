@@ -9,20 +9,13 @@ const {
 } = require('../../src/modules/errors');
 
 
-class CustomItemExistsError extends Error {
-  constructor(id) {
-    super(`Item exists: ${id}`);
+class CustomError extends Error {
+  constructor(prefix, id) {
+    super(`${prefix}: ${id}`);
   }
 }
-
-class CustomItemNotFoundError extends Error {
-  constructor(id) {
-    super(`Item not found: ${id}`);
-  }
-}
-
-const CustomItemExists = ({ id }) => new CustomItemExistsError(id);
-const CustomItemNotFound = ({ id }) => new CustomItemNotFoundError(id);
+const CustomItemExists = ({ id }) => new CustomError('Item exists', id);
+const CustomItemNotFound = ({ id }) => new CustomError('Item not found', id);
 
 const schema = {
   id: {
@@ -160,7 +153,7 @@ describe('Dynamo Sdk Tests', () => {
       try {
         await customErrorModel.get({ id: 'uuid', fields: ['keywords'] });
       } catch (err) {
-        expect(err).instanceof(CustomItemNotFoundError);
+        expect(err).instanceof(CustomError);
         expect(err.message).to.equal('Item not found: uuid');
         await nockDone();
       }
@@ -233,7 +226,11 @@ describe('Dynamo Sdk Tests', () => {
     });
 
     it('Testing Create Both Provided Id and Primary Key', async () => {
-      const nockDone = await new Promise((resolve) => nockBack('model/createProvidedIdAndPrimaryKey.json', {}, resolve));
+      const nockDone = await new Promise((resolve) => nockBack(
+        'model/createProvidedIdAndPrimaryKey.json',
+        {},
+        resolve
+      ));
       try {
         await autoIdModel.create({
           id: 'uuid',
@@ -257,7 +254,7 @@ describe('Dynamo Sdk Tests', () => {
           fields: ['keywords']
         });
       } catch (err) {
-        expect(err).instanceof(CustomItemExistsError);
+        expect(err).instanceof(CustomError);
         expect(err.message).to.equal('Item exists: uuid');
         await nockDone();
       }

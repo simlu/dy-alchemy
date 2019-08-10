@@ -1,3 +1,5 @@
+/* eslint-disable max-classes-per-file */
+
 class DefaultItemNotFoundError extends Error {
   constructor() {
     super('Item not found.');
