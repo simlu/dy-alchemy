@@ -1942,10 +1942,10 @@ duplexify@^3.4.2, duplexify@^3.6.0:
     readable-stream "^2.0.0"
     stream-shift "^1.0.0"
 
-dynamodb-lock-client@0.4.3:
-  version "0.4.3"
-  resolved "https://registry.yarnpkg.com/dynamodb-lock-client/-/dynamodb-lock-client-0.4.3.tgz#9774cdb8240e2f749cdb4e6cb0f935eba0b4b232"
-  integrity sha512-6sYqmHJEpgGe74sgv8yPDIbLG+R+Cdl71GJu5J8ytSmAPvL+lK7EmvVVMl9U7oEXwp3z5hjvoKXFPuivz2PKLQ==
+dynamodb-lock-client@0.5.0:
+  version "0.5.0"
+  resolved "https://registry.yarnpkg.com/dynamodb-lock-client/-/dynamodb-lock-client-0.5.0.tgz#a3b5e735b2503fbfbf3ce2d4f58c083d6f0b1678"
+  integrity sha512-2/3HEMD3zHQ9VHyw4VnSWTO/uO7hnJdIE95GRpAfz60AS4UCIOnx2Wy9nZNZ8bFYN3bPVF9EsNwA/c16CbwsnQ==
   dependencies:
     joi "14.3.1"
 
