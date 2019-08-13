@@ -173,9 +173,7 @@ Query for a list of objects using [Dynamodb::Query](https://docs.aws.amazon.com/
 
 <!-- eslint-disable no-undef -->
 ```js
-modelName.list({
-  indexName, indexMap, fields, ascending, limit, cursor
-});
+modelName.list({ indexName, indexMap, fields });
 ```
 
 _Params_
@@ -183,9 +181,9 @@ _Params_
 * `indexName` string: Name of index to query against
 * `indexMap` { [string]: any }: Key / Value map of index attributes to match against
 * `fields` array: Array of fields to request
-* `ascending` boolean: Specify the order that data is returned (ascending/descending)
-* `limit` number: Specify number items that are returned in a query
-* `cursor` string: String you can pass to get next page of query 
+* `ascending` boolean (true): Specify the order that data is returned (ascending/descending).
+* `limit` number (20): Specify number items that are returned in a query.
+* `cursor` string (null): String you can pass to get next page of query.
 
 ## Lock Manager
 
