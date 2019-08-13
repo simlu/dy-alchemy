@@ -182,8 +182,8 @@ _Params_
 * `indexMap` { [string]: any }: Key / Value map of index attributes to match against
 * `fields` array: Array of fields to request
 * `ascending` boolean (true): Specify the order that data is returned (ascending/descending).
-* `limit` number (20): Specify number items that are returned in a query.
-* `cursor` string (null): String you can pass to get next page of query.
+* `limit` number (20): Specify maximum number of items that are returned for a query.
+* `cursor` string (null): Cursor to page through query results.
 
 ## Lock Manager
 
