@@ -183,7 +183,7 @@ _Params_
 * `indexName` string: Name of index to query against
 * `indexMap` { [string]: any }: Key / Value map of index attributes to match against
 * `fields` array: Array of fields to request
-* `ascending` boolean: Specify the order that the data is returned
+* `ascending` boolean: Specify the order that data is returned (ascending/descending)
 * `limit` number: Specify number items that are returned in a query
 * `cursor` string: String you can pass to get next page of query 
 
