@@ -1,4 +1,5 @@
 const expect = require('chai').expect;
+const { describe } = require('node-tdd');
 const { evaluate, extract, validate } = require('../../src/util/conditional');
 const { InvalidCondition, ConditionNotImplemented } = require('../../src/modules/errors');
 

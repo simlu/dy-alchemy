@@ -1,4 +1,5 @@
 const expect = require('chai').expect;
+const { describe } = require('node-tdd');
 const index = require('../src/index');
 
 describe('Lock index.js', () => {
