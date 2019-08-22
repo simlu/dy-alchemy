@@ -5,16 +5,16 @@ const lockManager = require('../../src/modules/lock-manager');
 
 const cryptoRandomBytes = crypto.randomBytes;
 
-const awsConfig = {
-  region: process.env.AWS_REGION,
-  accessKeyId: process.env.INTER_SERVICE_ACCESS_KEY_ID,
-  secretAccessKey: process.env.INTER_SERVICE_SECRET_ACCESS_KEY
-};
-
 describe('Lock Manager Tests', { timestamp: 1893448800, useNock: true }, () => {
   let locker;
+  let awsConfig;
 
   before(() => {
+    awsConfig = {
+      region: process.env.AWS_REGION,
+      accessKeyId: process.env.INTER_SERVICE_ACCESS_KEY_ID,
+      secretAccessKey: process.env.INTER_SERVICE_SECRET_ACCESS_KEY
+    };
     locker = lockManager('dy-alchemy-lock-table', {
       leaseDurationMs: 1000,
       awsConfig

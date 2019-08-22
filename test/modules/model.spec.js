@@ -36,18 +36,20 @@ const schema = {
     defaultValue: false
   }
 };
-const awsConfig = {
-  region: process.env.AWS_REGION,
-  accessKeyId: process.env.INTER_SERVICE_ACCESS_KEY_ID,
-  secretAccessKey: process.env.INTER_SERVICE_SECRET_ACCESS_KEY
-};
+
 describe('Dynamo Sdk Tests', { useNock: true }, () => {
   let callbackLog = [];
   let defaultModel;
   let customErrorModel;
   let autoIdModel;
+  let awsConfig;
 
   before(() => {
+    awsConfig = {
+      region: process.env.AWS_REGION,
+      accessKeyId: process.env.INTER_SERVICE_ACCESS_KEY_ID,
+      secretAccessKey: process.env.INTER_SERVICE_SECRET_ACCESS_KEY
+    };
     defaultModel = new DynamoModel({
       modelName: 'default',
       tableName: 'dy-alchemy-table',
