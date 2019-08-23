@@ -1,4 +1,5 @@
 const expect = require('chai').expect;
+const { describe } = require('node-tdd');
 const { evaluate, extract, validate } = require('../../src/util/conditional');
 const { InvalidCondition, ConditionNotImplemented } = require('../../src/modules/errors');
 
@@ -131,6 +132,7 @@ describe('Testing conditional.js', () => {
   });
 
   describe('Testing extract', () => {
+    // eslint-disable-next-line mocha/no-setup-in-describe
     [
       'Equals',
       'NotEquals',
@@ -173,6 +175,7 @@ describe('Testing conditional.js', () => {
       })).to.deep.equal(['id']);
     });
 
+    // eslint-disable-next-line mocha/no-setup-in-describe
     ['And', 'Or'].forEach((c) => {
       it(`Testing extract "${c}"`, () => {
         expect(extract({
