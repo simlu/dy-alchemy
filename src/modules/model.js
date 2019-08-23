@@ -6,7 +6,8 @@ const objectHash = require('object-hash');
 const { DataMapper, DynamoDbSchema, DynamoDbTable } = require('@aws/dynamodb-data-mapper');
 const {
   DefaultItemNotFoundError, DefaultItemExistsError,
-  CannotUpdatePrimaryKeys, MustProvideIdXorPrimaryKeys,
+  CannotUpdatePrimaryKeys,
+  StringIdRequired, StringIdDisallowed,
   IncompletePrimaryKey
 } = require('./errors');
 const { fromCursor, buildPageObject } = require('../util/paging');
@@ -78,23 +79,42 @@ class Model {
   }
 
   // eslint-disable-next-line no-underscore-dangle
-  _generateId(data, providedId) {
-    assert(data instanceof Object && !Array.isArray(data), data);
-    assert(providedId === null || typeof providedId === 'string');
-    if ((typeof providedId !== 'string') === (!Array.isArray(this.primaryKeys))) {
-      throw new MustProvideIdXorPrimaryKeys();
+  _generateId(providedId) {
+    assert(typeof providedId === 'string' || (providedId instanceof Object && !Array.isArray(providedId)));
+    if (typeof providedId === 'string') {
+      return providedId;
     }
-    if (Array.isArray(this.primaryKeys) && this.primaryKeys.some((k) => data[k] === undefined)) {
+    assert(providedId instanceof Object && !Array.isArray(providedId), providedId);
+    if (Array.isArray(this.primaryKeys) && this.primaryKeys.some((k) => providedId[k] === undefined)) {
       throw new IncompletePrimaryKey();
+    }
+    return objectHash(this.primaryKeys.reduce((prev, cur) => Object.assign(prev, { [cur]: providedId[cur] }), {}));
+  }
+
+  // eslint-disable-next-line no-underscore-dangle
+  _generatePutId(providedId, data) {
+    assert(typeof providedId === 'string' || providedId === null);
+    if (providedId === null && this.primaryKeys === null) {
+      throw new StringIdRequired();
+    }
+    if (typeof providedId === 'string' && this.primaryKeys !== null) {
+      throw new StringIdDisallowed();
     }
     return typeof providedId === 'string'
       ? providedId
-      : objectHash(this.primaryKeys.reduce((prev, cur) => Object.assign(prev, { [cur]: data[cur] }), {}));
+      // eslint-disable-next-line no-underscore-dangle
+      : this._generateId(data);
   }
 
-  async get({ id, fields, conditions = [] }) {
+  async get({
+    id: providedId,
+    fields,
+    conditions = []
+  }) {
     // eslint-disable-next-line no-underscore-dangle
     this._before();
+    // eslint-disable-next-line no-underscore-dangle
+    const id = this._generateId(providedId);
     const condition = {
       type: 'And',
       conditions: [
@@ -139,7 +159,7 @@ class Model {
     // eslint-disable-next-line no-underscore-dangle
     this._before();
     // eslint-disable-next-line no-underscore-dangle
-    const id = this._generateId(data, providedId);
+    const id = this._generatePutId(providedId, data);
     const condition = {
       type: 'And',
       conditions: [
@@ -162,10 +182,15 @@ class Model {
   }
 
   async update({
-    id, data, fields, conditions = []
+    id: providedId,
+    data,
+    fields,
+    conditions = []
   }) {
     // eslint-disable-next-line no-underscore-dangle
     this._before();
+    // eslint-disable-next-line no-underscore-dangle
+    const id = this._generateId(providedId);
     const condition = {
       type: 'And',
       conditions: [
@@ -202,7 +227,7 @@ class Model {
     // eslint-disable-next-line no-underscore-dangle
     this._before();
     // eslint-disable-next-line no-underscore-dangle
-    const id = this._generateId(data, providedId);
+    const id = this._generatePutId(providedId, data);
     const condition = { type: 'And', conditions };
     validate(condition);
     await this.mapper.put(
@@ -214,9 +239,14 @@ class Model {
     return this.get({ id, fields });
   }
 
-  async delete({ id, conditions = [] }) {
+  async delete({
+    id: providedId,
+    conditions = []
+  }) {
     // eslint-disable-next-line no-underscore-dangle
     this._before();
+    // eslint-disable-next-line no-underscore-dangle
+    const id = this._generateId(providedId);
     const condition = {
       type: 'And',
       conditions: [

@@ -4,7 +4,8 @@ const DynamoModel = require('../../src/modules/model');
 const {
   DefaultItemExistsError, DefaultItemNotFoundError,
   InvalidPageCursor,
-  CannotUpdatePrimaryKeys, IncompletePrimaryKey, MustProvideIdXorPrimaryKeys
+  StringIdRequired, StringIdDisallowed,
+  CannotUpdatePrimaryKeys, IncompletePrimaryKey
 } = require('../../src/modules/errors');
 
 
@@ -13,6 +14,7 @@ class CustomError extends Error {
     super(`${prefix}: ${id}`);
   }
 }
+
 const CustomItemExists = ({ id }) => new CustomError('Item exists', id);
 const CustomItemNotFound = ({ id }) => new CustomError('Item not found', id);
 
@@ -121,6 +123,17 @@ describe('Dynamo Sdk Tests', { useNock: true }, () => {
       checkCallbackLog(['get']);
     });
 
+    it('Testing Get with Primary Key', async () => {
+      expect(await autoIdModel.get({
+        id: {
+          keywords: ['keyword1', 'keyword2'],
+          title: 'title'
+        },
+        fields: ['title']
+      })).to.deep.equal({ title: 'title' });
+      checkCallbackLog(['get'], 'aca3ddb278ff58d7ac44cebd96802b3e66528910');
+    });
+
     it('Testing Get Condition Not Matched', async () => {
       try {
         await defaultModel.get({
@@ -207,18 +220,25 @@ describe('Dynamo Sdk Tests', { useNock: true }, () => {
       }
     });
 
-    it('Testing Create Both Provided Id and Primary Key', async () => {
-      try {
-        await autoIdModel.create({
-          id: 'uuid',
-          data: {
-            keywords: ['keyword1', 'keyword2']
-          },
-          fields: ['keywords']
-        });
-      } catch (err) {
-        expect(err).instanceof(MustProvideIdXorPrimaryKeys);
-      }
+    it('Testing StringIdRequired', async ({ capture }) => {
+      const err = await capture(() => defaultModel.create({
+        data: {
+          keywords: ['keyword1', 'keyword2']
+        },
+        fields: ['keywords']
+      }));
+      expect(err).instanceof(StringIdRequired);
+    });
+
+    it('Testing StringIdDisallowed', async ({ capture }) => {
+      const err = await capture(() => autoIdModel.create({
+        id: 'uuid',
+        data: {
+          keywords: ['keyword1', 'keyword2']
+        },
+        fields: 'keywords'
+      }));
+      expect(err).instanceof(StringIdDisallowed);
     });
 
     it('Testing Create Item Exists Custom', async () => {
@@ -271,6 +291,18 @@ describe('Dynamo Sdk Tests', { useNock: true }, () => {
       });
       expect(result).to.deep.equal({ keywords: ['keyword1'] });
       checkCallbackLog(['update', 'get']);
+    });
+
+    it('Testing Update with Primary Key', async () => {
+      expect(await autoIdModel.update({
+        id: {
+          keywords: ['keyword1', 'keyword2'],
+          title: 'title'
+        },
+        data: { year: 1980 },
+        fields: ['title']
+      })).to.deep.equal({ title: 'title' });
+      checkCallbackLog(['update', 'get'], 'aca3ddb278ff58d7ac44cebd96802b3e66528910');
     });
 
     it('Testing Update with Condition', async () => {
@@ -362,6 +394,16 @@ describe('Dynamo Sdk Tests', { useNock: true }, () => {
     it('Testing Delete Base Case', async () => {
       await defaultModel.delete({ id: 'uuid' });
       checkCallbackLog(['delete']);
+    });
+
+    it('Testing Delete with Primary Key', async () => {
+      await autoIdModel.delete({
+        id: {
+          keywords: ['keyword1', 'keyword2'],
+          title: 'title'
+        }
+      });
+      checkCallbackLog(['delete'], 'aca3ddb278ff58d7ac44cebd96802b3e66528910');
     });
 
     it('Testing Delete with Condition', async () => {
