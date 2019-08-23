@@ -5,7 +5,7 @@ const lockManager = require('../../src/modules/lock-manager');
 
 const cryptoRandomBytes = crypto.randomBytes;
 
-describe('Lock Manager Tests', { timestamp: 1893448800, useNock: true }, () => {
+describe('Lock Manager Tests', { timestamp: 1893448800, useNock: true, timeout: 10000 }, () => {
   let locker;
   let awsConfig;
 
@@ -46,19 +46,19 @@ describe('Lock Manager Tests', { timestamp: 1893448800, useNock: true }, () => {
   it('Testing Basic Setup', async () => {
     const lock = await locker.lock('lock-name');
     await lock.release();
-  }).timeout(10000);
+  });
 
   it('Testing Nested Locks', async () => {
     const lockOuter = await locker.lock('lock-name-outer');
     const lockInner = await locker.lock('lock-name-inner');
     await lockInner.release();
     await lockOuter.release();
-  }).timeout(10000);
+  });
 
   it('Testing Lock Timeout', async () => {
     const lock = await locker.lock('lock-name-timeout');
     await lock.release();
-  }).timeout(10000);
+  });
 
   it('Testing Lock Failure', async () => {
     try {
@@ -66,7 +66,7 @@ describe('Lock Manager Tests', { timestamp: 1893448800, useNock: true }, () => {
     } catch (e) {
       expect(String(e)).to.equal('UnknownError: null');
     }
-  }).timeout(10000);
+  });
 
   it('Testing Lock Release Failure', async () => {
     const lock = await locker.lock('lock-release-failure');
@@ -75,7 +75,7 @@ describe('Lock Manager Tests', { timestamp: 1893448800, useNock: true }, () => {
     } catch (e) {
       expect(String(e)).to.equal('UnknownError: null');
     }
-  }).timeout(10000);
+  });
 
   it('Testing Heartbeat Failure', async () => {
     const logs = [];
@@ -89,5 +89,5 @@ describe('Lock Manager Tests', { timestamp: 1893448800, useNock: true }, () => {
     await new Promise((resolve) => setTimeout(resolve, 1000));
     expect(logs).to.deep
       .equal(['Error: Failed to renew heartbeat for lock lock-name-heartbeat-failure\nUnknownError: null']);
-  }).timeout(10000);
+  });
 });
