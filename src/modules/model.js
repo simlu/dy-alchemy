@@ -78,23 +78,36 @@ class Model {
   }
 
   // eslint-disable-next-line no-underscore-dangle
-  _generateId(data, providedId) {
+  _extractPrimaryKey(data) {
     assert(data instanceof Object && !Array.isArray(data), data);
-    assert(providedId === null || typeof providedId === 'string');
-    if ((typeof providedId !== 'string') === (!Array.isArray(this.primaryKeys))) {
-      throw new MustProvideIdXorPrimaryKeys();
-    }
     if (Array.isArray(this.primaryKeys) && this.primaryKeys.some((k) => data[k] === undefined)) {
       throw new IncompletePrimaryKey();
     }
-    return typeof providedId === 'string'
-      ? providedId
-      : objectHash(this.primaryKeys.reduce((prev, cur) => Object.assign(prev, { [cur]: data[cur] }), {}));
+    return objectHash(this.primaryKeys.reduce((prev, cur) => Object.assign(prev, { [cur]: data[cur] }), {}));
   }
 
-  async get({ id, fields, conditions = [] }) {
+  // eslint-disable-next-line no-underscore-dangle
+  _generateId(data, providedId, putOperation = false) {
+    assert(providedId === null || typeof providedId === 'string');
+    if (putOperation && (typeof providedId !== 'string') === (!Array.isArray(this.primaryKeys))) {
+      throw new MustProvideIdXorPrimaryKeys();
+    }
+    return typeof providedId === 'string'
+      ? providedId
+      // eslint-disable-next-line no-underscore-dangle
+      : this._extractPrimaryKey(data);
+  }
+
+  async get({
+    id: providedId = null,
+    primaryKeyComposite = null,
+    fields,
+    conditions = []
+  }) {
     // eslint-disable-next-line no-underscore-dangle
     this._before();
+    // eslint-disable-next-line no-underscore-dangle
+    const id = this._generateId(primaryKeyComposite, providedId);
     const condition = {
       type: 'And',
       conditions: [
@@ -139,7 +152,7 @@ class Model {
     // eslint-disable-next-line no-underscore-dangle
     this._before();
     // eslint-disable-next-line no-underscore-dangle
-    const id = this._generateId(data, providedId);
+    const id = this._generateId(data, providedId, true);
     const condition = {
       type: 'And',
       conditions: [
@@ -162,10 +175,16 @@ class Model {
   }
 
   async update({
-    id, data, fields, conditions = []
+    id: providedId = null,
+    primaryKeyComposite = null,
+    data,
+    fields,
+    conditions = []
   }) {
     // eslint-disable-next-line no-underscore-dangle
     this._before();
+    // eslint-disable-next-line no-underscore-dangle
+    const id = this._generateId(primaryKeyComposite, providedId);
     const condition = {
       type: 'And',
       conditions: [
@@ -202,7 +221,7 @@ class Model {
     // eslint-disable-next-line no-underscore-dangle
     this._before();
     // eslint-disable-next-line no-underscore-dangle
-    const id = this._generateId(data, providedId);
+    const id = this._generateId(data, providedId, true);
     const condition = { type: 'And', conditions };
     validate(condition);
     await this.mapper.put(
@@ -214,9 +233,15 @@ class Model {
     return this.get({ id, fields });
   }
 
-  async delete({ id, conditions = [] }) {
+  async delete({
+    id: providedId = null,
+    primaryKeyComposite = null,
+    conditions = []
+  }) {
     // eslint-disable-next-line no-underscore-dangle
     this._before();
+    // eslint-disable-next-line no-underscore-dangle
+    const id = this._generateId(primaryKeyComposite, providedId, true);
     const condition = {
       type: 'And',
       conditions: [

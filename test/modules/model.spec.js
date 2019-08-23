@@ -13,6 +13,7 @@ class CustomError extends Error {
     super(`${prefix}: ${id}`);
   }
 }
+
 const CustomItemExists = ({ id }) => new CustomError('Item exists', id);
 const CustomItemNotFound = ({ id }) => new CustomError('Item not found', id);
 
@@ -119,6 +120,17 @@ describe('Dynamo Sdk Tests', { useNock: true }, () => {
       expect(await defaultModel.get({ id: 'uuid', fields: ['isWatched'] }))
         .to.deep.equal({ isWatched: false });
       checkCallbackLog(['get']);
+    });
+
+    it('Testing Get with Primary Key', async () => {
+      expect(await autoIdModel.get({
+        primaryKeyComposite: {
+          keywords: ['keyword1', 'keyword2'],
+          title: 'title'
+        },
+        fields: ['title']
+      })).to.deep.equal({ title: 'title' });
+      checkCallbackLog(['get'], 'aca3ddb278ff58d7ac44cebd96802b3e66528910');
     });
 
     it('Testing Get Condition Not Matched', async () => {
@@ -273,6 +285,18 @@ describe('Dynamo Sdk Tests', { useNock: true }, () => {
       checkCallbackLog(['update', 'get']);
     });
 
+    it('Testing Update with Primary Key', async () => {
+      expect(await autoIdModel.update({
+        primaryKeyComposite: {
+          keywords: ['keyword1', 'keyword2'],
+          title: 'title'
+        },
+        data: { year: 1980 },
+        fields: ['title']
+      })).to.deep.equal({ title: 'title' });
+      checkCallbackLog(['update', 'get'], 'aca3ddb278ff58d7ac44cebd96802b3e66528910');
+    });
+
     it('Testing Update with Condition', async () => {
       const result = await defaultModel.update({
         id: 'uuid',
@@ -362,6 +386,16 @@ describe('Dynamo Sdk Tests', { useNock: true }, () => {
     it('Testing Delete Base Case', async () => {
       await defaultModel.delete({ id: 'uuid' });
       checkCallbackLog(['delete']);
+    });
+
+    it('Testing Delete with Primary Key', async () => {
+      await autoIdModel.delete({
+        primaryKeyComposite: {
+          keywords: ['keyword1', 'keyword2'],
+          title: 'title'
+        }
+      });
+      checkCallbackLog(['delete'], 'aca3ddb278ff58d7ac44cebd96802b3e66528910');
     });
 
     it('Testing Delete with Condition', async () => {
