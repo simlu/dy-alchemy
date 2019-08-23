@@ -4,7 +4,8 @@ const DynamoModel = require('../../src/modules/model');
 const {
   DefaultItemExistsError, DefaultItemNotFoundError,
   InvalidPageCursor,
-  CannotUpdatePrimaryKeys, IncompletePrimaryKey, MustProvideIdXorPrimaryKeys
+  StringIdRequired, StringIdDisallowed,
+  CannotUpdatePrimaryKeys, IncompletePrimaryKey
 } = require('../../src/modules/errors');
 
 
@@ -219,18 +220,25 @@ describe('Dynamo Sdk Tests', { useNock: true }, () => {
       }
     });
 
-    it('Testing Create Both Provided Id and Primary Key', async () => {
-      try {
-        await autoIdModel.create({
-          id: 'uuid',
-          data: {
-            keywords: ['keyword1', 'keyword2']
-          },
-          fields: ['keywords']
-        });
-      } catch (err) {
-        expect(err).instanceof(MustProvideIdXorPrimaryKeys);
-      }
+    it('Testing StringIdRequired', async ({ capture }) => {
+      const err = await capture(() => defaultModel.create({
+        data: {
+          keywords: ['keyword1', 'keyword2']
+        },
+        fields: ['keywords']
+      }));
+      expect(err).instanceof(StringIdRequired);
+    });
+
+    it('Testing StringIdDisallowed', async ({ capture }) => {
+      const err = await capture(() => autoIdModel.create({
+        id: 'uuid',
+        data: {
+          keywords: ['keyword1', 'keyword2']
+        },
+        fields: 'keywords'
+      }));
+      expect(err).instanceof(StringIdDisallowed);
     });
 
     it('Testing Create Item Exists Custom', async () => {

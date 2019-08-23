@@ -42,12 +42,19 @@ class CannotUpdatePrimaryKeys extends Error {
 }
 module.exports.CannotUpdatePrimaryKeys = CannotUpdatePrimaryKeys;
 
-class MustProvideIdXorPrimaryKeys extends Error {
+class StringIdRequired extends Error {
   constructor() {
-    super('Provide either "primaryKeys" or "id", but not both.');
+    super('Must provide id as String.');
   }
 }
-module.exports.MustProvideIdXorPrimaryKeys = MustProvideIdXorPrimaryKeys;
+module.exports.StringIdRequired = StringIdRequired;
+
+class StringIdDisallowed extends Error {
+  constructor() {
+    super('Cannot provide id as String.');
+  }
+}
+module.exports.StringIdDisallowed = StringIdDisallowed;
 
 class IncompletePrimaryKey extends Error {
   constructor() {
