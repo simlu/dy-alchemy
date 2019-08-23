@@ -124,7 +124,7 @@ describe('Dynamo Sdk Tests', { useNock: true }, () => {
 
     it('Testing Get with Primary Key', async () => {
       expect(await autoIdModel.get({
-        primaryKeyComposite: {
+        id: {
           keywords: ['keyword1', 'keyword2'],
           title: 'title'
         },
@@ -287,7 +287,7 @@ describe('Dynamo Sdk Tests', { useNock: true }, () => {
 
     it('Testing Update with Primary Key', async () => {
       expect(await autoIdModel.update({
-        primaryKeyComposite: {
+        id: {
           keywords: ['keyword1', 'keyword2'],
           title: 'title'
         },
@@ -390,7 +390,7 @@ describe('Dynamo Sdk Tests', { useNock: true }, () => {
 
     it('Testing Delete with Primary Key', async () => {
       await autoIdModel.delete({
-        primaryKeyComposite: {
+        id: {
           keywords: ['keyword1', 'keyword2'],
           title: 'title'
         }
