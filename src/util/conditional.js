@@ -26,20 +26,27 @@ const schema = (() => {
       name: Joi.string().valid('attribute_exists', 'attribute_not_exists', 'attribute_type', 'begins_with', 'contains'),
       expected: Joi.string().optional()
     })
-  );
-  let conditionNot;
+  ).id('condition-simple');
   const conditionAndOr = Joi.alternatives(
     Joi.object().keys({
       type: Joi.string().valid('Or', 'And'),
-      conditions: Joi.array().items(Joi.lazy(() => Joi.alternatives(conditionSimple, conditionAndOr, conditionNot)))
+      conditions: Joi.array().items(Joi.alternatives(
+        Joi.link('/condition-simple'),
+        Joi.link('/condition-and-or'),
+        Joi.link('/condition-not')
+      ))
     })
-  );
-  conditionNot = Joi.alternatives(
+  ).id('condition-and-or');
+  const conditionNot = Joi.alternatives(
     Joi.object().keys({
       type: Joi.string().valid('Not'),
-      condition: Joi.lazy(() => Joi.alternatives(conditionSimple, conditionAndOr, conditionNot))
+      condition: Joi.alternatives(
+        Joi.link('/condition-simple'),
+        Joi.link('/condition-and-or'),
+        Joi.link('/condition-not')
+      )
     })
-  );
+  ).id('condition-not');
   return Joi.alternatives(conditionSimple, conditionAndOr, conditionNot);
 })();
 
