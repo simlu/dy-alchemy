@@ -5,7 +5,6 @@
   "main": "lib/index.js",
   "dependencies": {
     "@aws/dynamodb-data-mapper": "0.7.3",
-    "@hapi/joi": "16.0.1",
     "aws-sdk-wrap": "3.3.3",
     "dynamodb-lock-client": "0.5.2",
     "joi-strict": "1.1.0",
