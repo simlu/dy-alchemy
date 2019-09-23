@@ -5,7 +5,7 @@
   "main": "lib/index.js",
   "dependencies": {
     "@aws/dynamodb-data-mapper": "0.7.3",
-    "aws-sdk-wrap": "3.4.0",
+    "aws-sdk-wrap": "3.4.1",
     "dynamodb-lock-client": "0.5.2",
     "joi-strict": "1.1.6",
     "lodash.get": "4.4.2",
@@ -29,7 +29,7 @@
     "eslint-plugin-json": "1.4.0",
     "eslint-plugin-markdown": "1.0.0",
     "eslint-plugin-mocha": "6.1.1",
-    "js-gardener": "2.0.99",
+    "js-gardener": "2.0.101",
     "node-tdd": "2.5.12",
     "nyc": "14.1.1",
     "semantic-release": "15.13.24"
