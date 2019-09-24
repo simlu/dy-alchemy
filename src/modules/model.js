@@ -297,7 +297,7 @@ class Model {
       ...(lastEvaluatedKey === null ? {} : { startKey: lastEvaluatedKey })
     });
     const payload = [];
-    // eslint-disable-next-line no-restricted-syntax,no-unused-vars
+    // eslint-disable-next-line no-restricted-syntax
     for await (const r of iterator) {
       payload.push(r);
       // eslint-disable-next-line no-underscore-dangle
