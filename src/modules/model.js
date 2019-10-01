@@ -268,6 +268,7 @@ class Model {
     }
     // eslint-disable-next-line no-underscore-dangle
     await this._callback('delete', id);
+    return { id };
   }
 
   async list({

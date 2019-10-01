@@ -392,17 +392,20 @@ describe('Dynamo Sdk Tests', { useNock: true }, () => {
 
   describe('Testing Delete', () => {
     it('Testing Delete Base Case', async () => {
-      await defaultModel.delete({ id: 'uuid' });
+      const id = 'uuid';
+      const deleted = await defaultModel.delete({ id });
+      expect(deleted).to.deep.equal({ id });
       checkCallbackLog(['delete']);
     });
 
     it('Testing Delete with Primary Key', async () => {
-      await autoIdModel.delete({
+      const deleted = await autoIdModel.delete({
         id: {
           keywords: ['keyword1', 'keyword2'],
           title: 'title'
         }
       });
+      expect(deleted).to.deep.equal({ id: 'aca3ddb278ff58d7ac44cebd96802b3e66528910' });
       checkCallbackLog(['delete'], 'aca3ddb278ff58d7ac44cebd96802b3e66528910');
     });
 
