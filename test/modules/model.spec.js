@@ -495,6 +495,27 @@ describe('Dynamo Sdk Tests', { useNock: true }, () => {
       checkCallbackLog(['list']);
     });
 
+    it('Testing List exhaustively page', async () => {
+      const result = await defaultModel.list({
+        indexName: 'index-name',
+        indexMap: { title: 'title', year: 1980 },
+        fields: ['id', 'title'],
+        limit: null
+      });
+      expect(result).to.deep.equal({
+        payload: [
+          { id: 'id-1', title: 'title' },
+          { id: 'id-2', title: 'title' },
+          { id: 'id-3', title: 'title' }
+        ],
+        page: {
+          index: { current: 1 },
+          next: null,
+          size: null
+        }
+      });
+    });
+
     it('Testing List with Invalid Cursor', async () => {
       try {
         await defaultModel.list({

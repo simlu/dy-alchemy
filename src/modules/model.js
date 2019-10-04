@@ -294,7 +294,7 @@ class Model {
       indexName,
       projection: toQuery,
       scanIndexForward,
-      limit: queryLimit,
+      ...(queryLimit === null ? {} : { limit: queryLimit }),
       ...(lastEvaluatedKey === null ? {} : { startKey: lastEvaluatedKey })
     });
     const payload = [];
