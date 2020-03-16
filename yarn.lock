@@ -249,6 +249,13 @@
   dependencies:
     "@hapi/hoek" "^9.0.0"
 
+"@hapi/address@^4.0.1":
+  version "4.0.1"
+  resolved "https://registry.yarnpkg.com/@hapi/address/-/address-4.0.1.tgz#267301ddf7bc453718377a6fb3832a2f04a721dd"
+  integrity sha512-0oEP5UiyV4f3d6cBL8F3Z5S7iWSX39Knnl0lY8i+6gfmmIBj44JCBNtcMgwyS+5v7j3VYavNay0NFHDS+UGQcw==
+  dependencies:
+    "@hapi/hoek" "^9.0.0"
+
 "@hapi/formula@^1.2.0":
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/@hapi/formula/-/formula-1.2.0.tgz#994649c7fea1a90b91a0a1e6d983523f680e10cd"
@@ -286,6 +293,17 @@
   integrity sha512-ob67RcPlwRWxBzLCnWvcwx5qbwf88I3ykD7gcJLWOTRfLLgosK7r6aeChz4thA3XRvuBfI0KB1tPVl2EQFlPXw==
   dependencies:
     "@hapi/address" "^4.0.0"
+    "@hapi/formula" "^2.0.0"
+    "@hapi/hoek" "^9.0.0"
+    "@hapi/pinpoint" "^2.0.0"
+    "@hapi/topo" "^5.0.0"
+
+"@hapi/joi@17.1.1":
+  version "17.1.1"
+  resolved "https://registry.yarnpkg.com/@hapi/joi/-/joi-17.1.1.tgz#9cc8d7e2c2213d1e46708c6260184b447c661350"
+  integrity sha512-p4DKeZAoeZW4g3u7ZeRo+vCDuSDgSvtsB/NpfjXEHTUjSeINAi/RrVOWiVQ1isaoLzMvFEhe8n5065mQq1AdQg==
+  dependencies:
+    "@hapi/address" "^4.0.1"
     "@hapi/formula" "^2.0.0"
     "@hapi/hoek" "^9.0.0"
     "@hapi/pinpoint" "^2.0.0"
@@ -3845,6 +3863,13 @@ joi-strict@1.2.0:
   integrity sha512-Dwk/uPoRGz2fQuf1fgyq8v9H/H/EqdOt3/e5FpVKXVfbt7aTJOQs8danj+EqKwxRnHtmW9hNNnz0jpym1oEiuA==
   dependencies:
     "@hapi/joi" "16.1.8"
+
+joi-strict@1.2.1:
+  version "1.2.1"
+  resolved "https://registry.yarnpkg.com/joi-strict/-/joi-strict-1.2.1.tgz#9be071aba4e70c9fbb5e644e9acb449f725391b3"
+  integrity sha512-cGBaasuJXHWWHI1JXV/083G/HLxwb+QjBjnakOBKlAToZd4ycbylTZVhA6rEKFBEAkwdaI7GKmyvdIzL65hXTw==
+  dependencies:
+    "@hapi/joi" "17.1.1"
 
 js-gardener@2.0.137:
   version "2.0.137"
