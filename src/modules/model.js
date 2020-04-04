@@ -1,7 +1,7 @@
 const assert = require('assert');
 const get = require('lodash.get');
 const AWS = require('aws-sdk-wrap');
-const { retain } = require('object-fields');
+const { Retainer } = require('object-fields');
 const objectHash = require('object-hash');
 const { DataMapper, DynamoDbSchema, DynamoDbTable } = require('@aws/dynamodb-data-mapper');
 const {
@@ -146,7 +146,8 @@ class Model {
     }
     // eslint-disable-next-line no-underscore-dangle
     await this._callback('get', id);
-    retain(resp, fields);
+    const retain = Retainer(fields);
+    retain(resp);
     return resp;
   }
 
