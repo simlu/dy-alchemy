@@ -7,7 +7,7 @@
     "@aws/dynamodb-data-mapper": "0.7.3",
     "aws-sdk-wrap": "4.1.2",
     "dynamodb-lock-client": "0.6.3",
-    "joi-strict": "1.2.1",
+    "joi-strict": "1.2.2",
     "lodash.get": "4.4.2",
     "object-fields": "2.0.3",
     "object-hash": "2.0.3"
