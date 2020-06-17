@@ -8,7 +8,6 @@ const {
   CannotUpdatePrimaryKeys, IncompletePrimaryKey
 } = require('../../src/modules/errors');
 
-
 class CustomError extends Error {
   constructor(prefix, id) {
     super(`${prefix}: ${id}`);
