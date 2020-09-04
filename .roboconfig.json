@@ -8,6 +8,7 @@
       "packageName": "dy-alchemy",
       "projectName": "dy-alchemy",
       "owner": "simlu",
+      "nodeVersion": "10",
       "ownerName": "Lukas Siemon",
       "mergeBot": "MrsFlux"
     }
