@@ -9,7 +9,7 @@
     "dynamodb-lock-client": "0.7.2",
     "joi-strict": "1.2.5",
     "lodash.get": "4.4.2",
-    "object-fields": "2.0.13",
+    "object-fields": "2.0.14",
     "object-hash": "2.0.3"
   },
   "devDependencies": {
