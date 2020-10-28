@@ -7,7 +7,7 @@ const schema = (() => {
       subject: Joi.string(),
       type: Joi.string()
         .valid('Equals', 'NotEquals', 'LessThan', 'LessThanOrEqualTo', 'GreaterThan', 'GreaterThanOrEqualTo'),
-      object: Joi.alternatives(Joi.string(), Joi.number())
+      object: Joi.alternatives(Joi.string(), Joi.number(), Joi.boolean())
     }),
     Joi.object().keys({
       subject: Joi.string(),
