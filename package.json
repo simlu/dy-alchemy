@@ -5,7 +5,7 @@
   "main": "lib/index.js",
   "dependencies": {
     "@aws/dynamodb-data-mapper": "0.7.3",
-    "aws-sdk-wrap": "4.6.4",
+    "aws-sdk-wrap": "4.6.5",
     "dynamodb-lock-client": "0.7.2",
     "joi-strict": "1.2.7",
     "lodash.get": "4.4.2",
