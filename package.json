@@ -3,15 +3,7 @@
   "version": "0.0.0-development",
   "description": "Simplification of Amazon DynamoDB interactions",
   "main": "lib/index.js",
-  "dependencies": {
-    "@aws/dynamodb-data-mapper": "0.7.3",
-    "aws-sdk-wrap": "5.0.0",
-    "dynamodb-lock-client": "0.7.2",
-    "joi-strict": "1.2.9",
-    "lodash.get": "4.4.2",
-    "object-fields": "2.0.20",
-    "object-hash": "2.1.1"
-  },
+  "dependencies": {},
   "devDependencies": {
     "@babel/cli": "7.12.10",
     "@babel/core": "7.12.10",
@@ -29,7 +21,6 @@
     "eslint-plugin-markdown": "1.0.2",
     "eslint-plugin-mocha": "8.0.0",
     "js-gardener": "2.0.184",
-    "node-tdd": "2.19.1",
     "nyc": "15.1.0",
     "semantic-release": "17.3.7",
     "babel-preset-latest-node": "5.4.0"
