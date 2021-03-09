@@ -88,7 +88,7 @@
   ],
   "homepage": "https://github.com/blackflux/dy-alchemy#readme",
   "engines": {
-    "node": ">= 10"
+    "node": ">= 12"
   },
   "repository": {
     "type": "git",
